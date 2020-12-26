@@ -1,0 +1,75 @@
+=====================================================================
+				 BOXES
+=====================================================================
+
+Boxes is a demo written for the HP 95LX to demonstrate the how-to's of
+writing System Manager compliant applications (such as the
+Appointment book, HP calc, Hearts & Bones, etc.).  System manager
+apps have the advantage of being able to be hooked to a key, and
+being multi-tasking (after a fashion) unlike normal DOS programs in the
+95.  System manager apps will also have the same look and feel as
+the rest of the built-in applications which may be advantageous for
+the user's learning curve.
+
+Boxes is a version of the simple "connect the boxes" game that many people
+have played as children.  The object is for each player to own more boxes than
+their opponent; the player to add the fourth and final side to a box is
+the "owner" of that box.  The game can be played with either the computer
+(which is not all that intelligent in its box choices) or another human
+(and 95LX) over the infra-red port.
+
+This game was written with the purpose of showing as many System Manager
+function calls as possible (*not* as an exciting game premise), so each
+call to the S.M. is documented.  All major areas of System Manager functions
+except Resource/Help (which are available to built-in apps only), Clipboard,
+Collating, and 1-2-3 Bridge are represented.  To keep the program manageable,
+not all the functions have been used, but enough typical of a comprehensive
+SysMgr app are included.  Note that the communications routines used for
+two-player mode are relatively safe, but do not do robust ack/nak error
+checking.  I.e. do not put your hand inbetween the two units during play,
+or the program will quit the game(s)!  BOXES is not a demonstration of how
+to write indestructible communications code!
+
+The overall program structure is also documented at the beginning of
+BOXES.C.  All calls have "prototypes" in the C header files that can
+be looked at for more information.  For the grand scheme of things, look at
+OVERVIEW.DOC for more pointers in putting a SysMgr app together. I strongly
+suggest if you have not programmed a System Manager app before, that you
+read through BOXES.C carefully, and read all the comments.  That way you
+will be aware of any pecularities BEFORE you design your own code.  It may
+also be useful to modify boxes slightly and download it to the 95LX to
+try out various parameter changes (be sure to keep an original!).
+
+System manager applications are event driven, not procedure driven as
+normal C code.	The program spends its time in event loops until the
+System Manager passes an event.  Events are related to timers, keystroke
+input, or context switches.  What the program does with each particular
+event is dependent on the state of the program at the time the event
+is received.  This can be seen in BOXES by the use of the variable "states"
+to keep track of the program state and to dispatch events accordingly.
+BOXES also uses more than one event loop in cases where the old event
+loop would be too cumbersome to put flags in (ESCmsg is one of these).
+BOXES also uses all strings out of a string table; this is in preparation
+for language localization.  Not all programs will need to be localized for
+other countries, but you may want to seriously consider it before you start
+coding.
+
+All system manager apps should be written in the Small compiler
+model with one code segment and one data segment.  Boxes uses MS C 6.0,
+but the code should be relatively easy to compile under MS C 5.1; just
+take out the inline assembly and replace it with calls to an assembly
+object module.	Conversion to another compiler would require replacing
+the CRT0.OBJ startup object module--quite possibly an arduous task.
+
+Here are the files associated with BOXES:
+
+  BOXES.C    -- Boxes source code
+  BOXES.MAK  -- Make file for Microsoft C 6.0
+  BOXES.EXE  -- Dos executable
+  BOXES.EXM  -- EXecutable under system Manager
+  BOXES.DOC  -- This file
+
+==========================================================================
+END OF FILE
+==========================================================================
+

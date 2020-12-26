@@ -1,0 +1,8 @@
+asmdemo.obj:	asmdemo.asm
+		MASM /Mx asmdemo;
+
+asmdemo.exe:	asmdemo.obj
+		LINK /M asmdemo;
+
+asmdemo.exm:	asmdemo.exe
+		E2M asmdemo

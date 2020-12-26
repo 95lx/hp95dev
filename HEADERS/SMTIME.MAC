@@ -1,0 +1,105 @@
+; Module smtime.mac  Version 1.1  Date 06/19/91  Time 17:41:34 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+DTINFO struc
+dt_order	db 1 dup (?)	;month-day-year order, see below
+dt_dsep		db 1 dup (?)	;date separator
+dt_tsep		db 1 dup (?)	;time separator
+dt_24hr		db 1 dup (?)	;non-zero => 24-hour time
+DTINFO ends
+
+DATE_MDY	equ	0
+DATE_DMY	equ	1
+DATE_YMD	equ	2
+
+
+DTM struc
+	dt_year		dw 1 dup (?)
+	dt_month	db 1 dup (?)
+	dt_date		db 1 dup (?)
+	dt_day		db 1 dup (?)
+	dt_hour		db 1 dup (?)
+	dt_minute	db 1 dup (?)
+	dt_second	db 1 dup (?)
+	dt_hundreth	db 1 dup (?)
+DTM ends
+
+
+TIME struc
+t_hundreth	db 1 dup (?)		;0 - 99
+t_second	db 1 dup (?)		;0 - 59
+t_minute	db 1 dup (?)		;0 - 59
+t_hour		db 1 dup (?)		;0 - 23
+TIME ends
+
+
+ALARM_MSG_LEN	equ	40
+ALARM_EXTRA_LEN	equ	4
+
+ALARM struc
+a_hour		db 1 dup (?)		;time of alarm
+a_minute	db 1 dup (?)		;
+a_second	db 1 dup (?)
+a_pad		db 1 dup (?)		;word padding.
+a_interval	dw 1 dup (?)		;reschedule interval (seconds)
+a_use_seconds	db 1 dup (?)		;are seconds significant
+a_sound		db 1 dup (?)		;alarm sound
+a_message	db ALARM_MSG_LEN dup (?);message displayed when alarm goes off
+a_owner		db 1 dup (?)		;
+a_special	db 1 dup (?)		;app's own use for sub-class
+a_extra		db ALARM_EXTRA_LEN dup (?);app's own user for specific data
+ALARM ends
+
+ALARM_FORCE	equ	1
+ALARM_IF_EARLY	equ	2
+ALARM_IF_CLEAR	equ	4
+
+
+
+
+
+
+TIMECHANGE STRUC
+	otc_year	dw	1 dup (?)
+	otc_month	db	1 dup (?)
+	otc_date	db	1 dup (?)
+	otc_day		db	1 dup (?)
+	otc_hour	db	1 dup (?)
+	otc_minute	db	1 dup (?)
+	otc_second	db	1 dup (?)
+	otc_hundreth	db	1 dup (?)
+	ntc_year	dw	1 dup (?)
+	ntc_month	db	1 dup (?)
+	ntc_date	db	1 dup (?)
+	ntc_day		db	1 dup (?)
+	ntc_hour	db	1 dup (?)
+	ntc_minute	db	1 dup (?)
+	ntc_second	db	1 dup (?)
+	ntc_hundreth	db	1 dup (?)
+TIMECHANGE ends
+
+
+
+
+
+;
+; Tell time function flags.
+;
+;
+TT_DATE_ONLY			equ	0
+TT_TIME_ONLY			equ	1
+TT_DATE_N_TIME			equ	2
+TT_DAY_N_DATE			equ	3
+TT_SUPPRESS_SECONDS		equ	020h
+TT_SUPPRESS_AMPM		equ	010h
+TT_FORCE_YEAR			equ	040h
+TT_4_DIGIT_YEAR			equ	080h
+
+; Parse date flags
+PD_ANY_YEAR			equ	08h

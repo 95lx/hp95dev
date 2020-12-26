@@ -1,0 +1,133 @@
+; Module comio.mac  Version 1.2  Date 07/30/91  Time 09:32:03 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+E_GOOD		EQU	0
+E_REOPEN	EQU     -1
+E_IVCHN		EQU    	-2
+E_IVOPR		EQU    	-3
+E_UNSUP		EQU    	-4
+E_NOFIT		EQU    	-5
+E_BUFOV		EQU    	-6
+E_NOMEM		EQU    	-7
+E_UNOPEN	EQU	-8
+E_CONECT	EQU	-9
+E_EMPTY		EQU    	-10
+E_OVERN		EQU	-11
+E_PARITY	EQU	-12
+E_FRAME		EQU	-13
+E_TIMEOUT	EQU	-14
+E_BUSY		EQU	-15
+
+COM_QUERY	EQU	0
+
+COM_LINE_1	EQU	1
+COM_LINE_2	EQU	2
+COM_LINE_3	EQU	3
+COM_LINE_4	EQU	4
+
+COM_MDM_NONE	EQU	1
+COM_MDM_HAYES	EQU	2
+
+COM_ANS_WAIT	EQU	1	; wait until phone answered
+COM_ANS_NOWAIT	EQU	2	; put phone in answer mode
+COM_ANS_STOP	EQU	3	; turn off answer mode (default)
+
+COM_RESET_LINE	EQU	000000001h	; reset line
+COM_RESET_TXB	EQU	000000002h	; flush transmit buffer
+COM_RESET_RXB	EQU	000000004h	; flush receive buffer
+COM_RESET_MODEM	EQU	000000008h	; reset modem
+COM_RESET_RXFLOW EQU	000000010h	; reset receiver's ^S state, if set
+COM_RESET_TXFLOW EQU	000000020h	; reset transmitter's ^S state, if set
+
+COM_CTL_WHOLE	 EQU	000000001h	; send partial buffer
+COM_CTL_SETRCV	 EQU	000000002h	; turn rcvr on after sending
+
+com_settings	STRUC 
+Dial		db	1 dup (?)
+Baud		dw	1 dup (?)
+Parity		db	1 dup (?)
+Stop		db	1 dup (?)
+Data		db	1 dup (?)
+XonXof		db	1 dup (?)
+InfraRed	db	1 dup (?)
+Duplex		db	1 dup (?)
+Echo		db	1 dup (?)
+com_settings	ENDS
+
+; Values for Dial field in com_settings struct
+
+COM_DIAL_TONE	EQU 	000000054h	; 'T'
+COM_DIAL_PULSE	EQU	000000050h	; 'P'
+
+; Values for Baud field in com_settings struct
+
+COM_BR_110    	EQU  	000000417h
+COM_BR_150    	EQU  	000000300h
+COM_BR_300    	EQU  	000000180h
+COM_BR_600    	EQU  	0000000c0h
+COM_BR_1200   	EQU  	000000060h
+COM_BR_2400   	EQU  	000000030h
+COM_BR_4800   	EQU  	000000018h
+COM_BR_9600   	EQU  	00000000ch
+COM_BR_19200  	EQU  	000000006h
+COM_BR_38400  	EQU  	000000003h
+COM_BR_57600  	EQU  	000000002h
+
+; Values for Parity field in com_settings struct
+
+COM_PTY_NO	EQU 	000000000h	; no parity
+COM_PTY_ODD	EQU 	000000008h	; odd parity
+COM_PTY_EVEN	EQU 	000000018h	; even parity
+COM_PTY_MARK	EQU 	000000028h	; high parity
+COM_PTY_SPACE	EQU 	000000038h	; low parity
+
+; Values for Stop field in com_settings struct
+
+COM_STOP_1     	EQU 	000000000h 	; one stop bit
+COM_STOP_2     	EQU 	000000004h	; two stop bits
+
+; Values for Data field in com_settings struct
+
+COM_DATA_7	EQU  	000000002h	; seven data bits
+COM_DATA_8	EQU  	000000003h	; eight data bits
+
+; Values for XonXof field in com_settings struct
+
+COM_XON_OFF    	EQU   	1	; disable XOFF/XON
+COM_XON_ON     	EQU   	2	; turn on XOFF/XON
+COM_XON_ANY    	EQU   	4	; turn on XOFF/ANY
+COM_ENQACK     	EQU   	8	; HP's ENQ/ACK protocol for old equipment
+                ; Note that both XON/XOFF and ENQ/ACK may
+                ; be specified.  These two, COM_ENQACK
+                ; and COM_XON_ON, are the only two bits that
+                ; may be on simultaneously.  If any others
+                ; are on simultaneously, then results are not
+                ; guaranteed.
+
+
+; Values for InfraRed field in com_settings struct
+
+COM_IR_OFF 	EQU 	1	; Turn off infra-red/on modem/rs-232
+COM_IR_ON  	EQU 	2	; Turn on infra-red/off modem/rs-232
+
+; Values for Duplex field in com_settings struct
+
+COM_DUP_HALF  	EQU 	1
+COM_DUP_FULL  	EQU 	2
+
+; Values for Echo field in com_settings struct
+
+COM_ECHO    	EQU 	1
+COM_NOECHO  	EQU 	2
+
+; Values for Compression field in com_settings struct
+
+COM_CMP_OFF   	EQU 	1	; turn compression off
+COM_CMP_G31D  	EQU 	2	; Group 3, 1 dimensional (FAX uses this)
+

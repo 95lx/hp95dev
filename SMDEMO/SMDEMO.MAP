@@ -1,0 +1,270 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 00FABH 00FACH _TEXT                  CODE
+ 00FB0H 00FB1H 00002H EMULATOR_TEXT          CODE
+ 00FB2H 00FB2H 00000H C_ETEXT                ENDCODE
+ 00FC0H 00FC0H 00000H EMULATOR_DATA          FAR_DATA
+ 00FC0H 01001H 00042H NULL                   BEGDATA
+ 01002H 01205H 00204H _DATA                  DATA
+ 01206H 01207H 00002H XIQC                   DATA
+ 01208H 01215H 0000EH DBDATA                 DATA
+ 01216H 01223H 0000EH CDATA                  DATA
+ 01224H 01224H 00000H XIFB                   DATA
+ 01224H 01224H 00000H XIF                    DATA
+ 01224H 01224H 00000H XIFE                   DATA
+ 01224H 01224H 00000H XIB                    DATA
+ 01224H 01224H 00000H XI                     DATA
+ 01224H 01224H 00000H XIE                    DATA
+ 01224H 01224H 00000H XPB                    DATA
+ 01224H 01224H 00000H XP                     DATA
+ 01224H 01224H 00000H XPE                    DATA
+ 01224H 01224H 00000H XCB                    DATA
+ 01224H 01224H 00000H XC                     DATA
+ 01224H 01224H 00000H XCE                    DATA
+ 01224H 01224H 00000H XCFB                   DATA
+ 01224H 01224H 00000H XCF                    DATA
+ 01224H 01224H 00000H XCFE                   DATA
+ 01224H 01224H 00000H CONST                  CONST
+ 01224H 0122BH 00008H HDR                    MSG
+ 0122CH 01301H 000D6H MSG                    MSG
+ 01302H 01303H 00002H PAD                    MSG
+ 01304H 01304H 00001H EPAD                   MSG
+ 01306H 01306H 00000H _BSS                   BSS
+ 01306H 01306H 00000H XOB                    BSS
+ 01306H 01306H 00000H XO                     BSS
+ 01306H 01306H 00000H XOE                    BSS
+ 01310H 019F9H 006EAH c_common               BSS
+ 01A00H 021FFH 00800H STACK                  STACK
+
+ Origin   Group
+ 00FC:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:07E2       patch_service_interrupt
+ 00FC:01EC       STKHQQ
+ 0000:00E0       _app_awake
+ 0000:0236       _app_break
+ 0000:00E8       _app_display
+ 0000:0080       _app_init
+ 0000:023C       _app_key
+ 0000:0230       _app_sleep
+ 0000:00DA       _app_term
+ 0000:07E3       _break_point
+ 0000:07D8       _c_service
+ 0000:07D8       _c_service_far_ptr
+ 0000:07D8       _c_service_near_ptr
+ 0000:058E       _disable_light_sleep
+ 00FC:0346       _edata
+ 00FC:09AE       _edit_data
+ 0000:05A0       _enable_light_sleep
+ 00FC:0A40       _end
+ 00FC:0231       _environ
+ 00FC:020A       _errno
+ 0000:0490       _ESCmsg
+ 00FC:054E       _event
+ 0000:09DC       _exit
+ 00FC:0560       _fmbuffer
+ 00FC:0052       _fmenu
+ 0000:050E       _InterruptibleLoop
+ 0000:0904       _ltoa
+ 0000:0010       _main
+ 0000:0DE4       _malloc
+ 00FC:03E0       _menu
+ 0000:0698       _NextAvailable
+ 00FC:0360       _Perm
+ 00FC:055C       _PermCount
+ 00FC:09AC       _PermSpots
+ 0000:0738       _Permutation
+ 0000:05B2       _ResetPermutations
+ 0000:05F4       _ShowPerm
+ 00FC:0050       _state
+ 0000:08E8       _strlen
+ 00FC:0350       _strptr
+ 00FC:01EA       __aaltstkovr
+ 00FC:01EE       __acfinfo
+ 0000:9876  Abs  __acrtmsg
+ 0000:9876  Abs  __acrtused
+ 0000:D6D6  Abs  __aDBdoswp
+ 00FC:0240       __adbgmsg
+ 00FC:01CE       __aexit_rtn
+ 00FC:01FC       __aintdiv
+ 00FC:0244       __amblksiz
+ 0000:08AE       __amsg_exit
+ 0000:08D0       __aNchkstk
+ 00FC:0042       __anullsize
+ 00FC:01E6       __aseghi
+ 00FC:01E8       __aseglo
+ 00FC:01D0       __asizds
+ 0000:07E6       __astart
+ 00FC:01CC       __atopsp
+ 0000:09EB       __cexit
+ 00FC:0238       __child
+ 0000:08D0       __chkstk
+ 0000:090E       __cinit
+ 0000:089E       __cintDIV
+ 0000:0D38       __cltoasub
+ 0000:0A5D       __ctermsub
+ 0000:0D44       __cxtoa
+ 0000:09F5       __c_exit
+ 0000:08CD       __dataseg
+ 00FC:0215       __doserrno
+ 00FC:0212       __dosvermajor
+ 00FC:0213       __dosverminor
+ 00FB:0000       __EmDataSeg
+ 0000:09E3       __exit
+ 00FC:0200       __fac
+ 0000:0AAC       __FF_MSGBANNER
+ 0000:0EC5       __findlast
+ 00FC:0258       __fpinit
+ 0000:0D98       __fptrap
+ 0000:0DE8       __growseg
+ 0000:0E74       __incseg
+ 00FC:023B       __intno
+ 0000:0DC0       __myalloc
+ 00FC:0217       __nfile
+ 0000:0EE6       __nfree
+ 00FC:01D2       __nheap_desc
+ 0000:0F07       __nmalloc
+ 0000:0CD8       __NMSG_TEXT
+ 0000:0D03       __NMSG_WRITE
+ 0000:0D9E       __nullcheck
+ 00FC:0215       __oserr
+ 00FC:0219       __osfile
+ 00FC:0212       __osmajor
+ 00FC:0213       __osminor
+ 00FC:0214       __osmode
+ 00FC:0212       __osversion
+ 00FC:023A       __ovlflag
+ 00FC:023C       __ovlvec
+ 00FC:0233       __pgmptr
+ 00FC:0210       __psp
+ 00FC:020E       __pspadr
+ 0000:0F30       __searchseg
+ 0000:0ACC       __setargv
+ 0000:0C5A       __setenvp
+ 00FC:020C       __umaskval
+ 00FC:024E       ___aDBexit
+ 00FC:0254       ___aDBptrchk
+ 00FC:024C       ___aDBrterr
+ 00FC:024A       ___aDBswpchk
+ 00FC:0248       ___aDBswpflg
+ 00FC:022D       ___argc
+ 00FC:022F       ___argv
+ 00FC:0246       ___qczrinit
+
+  Address         Publics by Value
+
+ 0000:0010       _main
+ 0000:0080       _app_init
+ 0000:00DA       _app_term
+ 0000:00E0       _app_awake
+ 0000:00E8       _app_display
+ 0000:0230       _app_sleep
+ 0000:0236       _app_break
+ 0000:023C       _app_key
+ 0000:0490       _ESCmsg
+ 0000:050E       _InterruptibleLoop
+ 0000:058E       _disable_light_sleep
+ 0000:05A0       _enable_light_sleep
+ 0000:05B2       _ResetPermutations
+ 0000:05F4       _ShowPerm
+ 0000:0698       _NextAvailable
+ 0000:0738       _Permutation
+ 0000:07D8       _c_service_near_ptr
+ 0000:07D8       _c_service_far_ptr
+ 0000:07D8       _c_service
+ 0000:07E2       patch_service_interrupt
+ 0000:07E3       _break_point
+ 0000:07E6       __astart
+ 0000:089E       __cintDIV
+ 0000:08AE       __amsg_exit
+ 0000:08CD       __dataseg
+ 0000:08D0       __chkstk
+ 0000:08D0       __aNchkstk
+ 0000:08E8       _strlen
+ 0000:0904       _ltoa
+ 0000:090E       __cinit
+ 0000:09DC       _exit
+ 0000:09E3       __exit
+ 0000:09EB       __cexit
+ 0000:09F5       __c_exit
+ 0000:0A5D       __ctermsub
+ 0000:0AAC       __FF_MSGBANNER
+ 0000:0ACC       __setargv
+ 0000:0C5A       __setenvp
+ 0000:0CD8       __NMSG_TEXT
+ 0000:0D03       __NMSG_WRITE
+ 0000:0D38       __cltoasub
+ 0000:0D44       __cxtoa
+ 0000:0D98       __fptrap
+ 0000:0D9E       __nullcheck
+ 0000:0DC0       __myalloc
+ 0000:0DE4       _malloc
+ 0000:0DE8       __growseg
+ 0000:0E74       __incseg
+ 0000:0EC5       __findlast
+ 0000:0EE6       __nfree
+ 0000:0F07       __nmalloc
+ 0000:0F30       __searchseg
+ 00FB:0000       __EmDataSeg
+ 00FC:0042       __anullsize
+ 00FC:0050       _state
+ 00FC:0052       _fmenu
+ 00FC:01CC       __atopsp
+ 00FC:01CE       __aexit_rtn
+ 00FC:01D0       __asizds
+ 00FC:01D2       __nheap_desc
+ 00FC:01E6       __aseghi
+ 00FC:01E8       __aseglo
+ 00FC:01EA       __aaltstkovr
+ 00FC:01EC       STKHQQ
+ 00FC:01EE       __acfinfo
+ 00FC:01FC       __aintdiv
+ 00FC:0200       __fac
+ 00FC:020A       _errno
+ 00FC:020C       __umaskval
+ 00FC:020E       __pspadr
+ 00FC:0210       __psp
+ 00FC:0212       __dosvermajor
+ 00FC:0212       __osmajor
+ 00FC:0212       __osversion
+ 00FC:0213       __osminor
+ 00FC:0213       __dosverminor
+ 00FC:0214       __osmode
+ 00FC:0215       __oserr
+ 00FC:0215       __doserrno
+ 00FC:0217       __nfile
+ 00FC:0219       __osfile
+ 00FC:022D       ___argc
+ 00FC:022F       ___argv
+ 00FC:0231       _environ
+ 00FC:0233       __pgmptr
+ 00FC:0238       __child
+ 00FC:023A       __ovlflag
+ 00FC:023B       __intno
+ 00FC:023C       __ovlvec
+ 00FC:0240       __adbgmsg
+ 00FC:0244       __amblksiz
+ 00FC:0246       ___qczrinit
+ 00FC:0248       ___aDBswpflg
+ 00FC:024A       ___aDBswpchk
+ 00FC:024C       ___aDBrterr
+ 00FC:024E       ___aDBexit
+ 00FC:0254       ___aDBptrchk
+ 00FC:0258       __fpinit
+ 00FC:0346       _edata
+ 00FC:0350       _strptr
+ 00FC:0360       _Perm
+ 00FC:03E0       _menu
+ 00FC:054E       _event
+ 00FC:055C       _PermCount
+ 00FC:0560       _fmbuffer
+ 00FC:09AC       _PermSpots
+ 00FC:09AE       _edit_data
+ 00FC:0A40       _end
+ 0000:9876  Abs  __acrtmsg
+ 0000:9876  Abs  __acrtused
+ 0000:D6D6  Abs  __aDBdoswp
+
+Program entry point at 0000:07E6

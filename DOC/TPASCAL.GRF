@@ -1,0 +1,312 @@
+From SUNNERS@hfrd.dsto.oz.au Tue Oct 15 22:40 PDT 1991
+Received: from hplabs.hpl.hp.com by hpcvra.cv.hp.com with SMTP
+	(15.11/15.5+IOS 3.22[SMTP-rly]+CV 1.0leaf) id AA23646; Tue, 15 Oct 91 22:40:27 pdt
+Return-Path: <SUNNERS@hfrd.dsto.oz.au>
+Received: from munnari.OZ.AU by hplabs.hpl.hp.com with SMTP
+	(16.5/15.5+IOS 3.14) id AA20867; Tue, 15 Oct 91 22:39:41 -0700
+Received: from hfrd.dsto.oz (via augean) by munnari.oz.au with SunIII (5.64+1.3.1+0.50)
+	id AA12527; Wed, 16 Oct 1991 15:39:21 +1000 (from SUNNERS@hfrd.dsto.oz.au)
+Received: from hfrd.dsto.oz.au (hfrd.ARPA) by fang.dsto.oz (1.2/4.7)
+		id AA22243; Wed, 16 Oct 91 14:52:02 pst
+Date:    Wed, 16 Oct 1991 14:51:53 CST
+From: SUNNERS@hfrd.dsto.oz.au (Mike Sunners)
+Message-Id: <911016145154.609b@hfrd.dsto.oz.au>
+Subject:  
+To: everett@hpcvra.cv.hp.com
+X-Vmsmail-To: everett%hpcvra@hplabs.hp.com
+Status: RO
+
+Sir,
+    Thanks very much for the graphics documentation.
+
+    I have been running Turbo Pascal 5.0 on the 95LX.
+I chose this language because it is small - ie
+TPC.EXE    56925    (compiler)
+TURBO.TPL  35632    (runtime system and dos lib)
+EDIT.EXE   29696    (an editor)
+
+    The small size means that programs can be 
+written and debugged on the 95LX (although I also
+have a PC). I do have Turbo C++, and TASM, but they
+are too big to think about.
+
+    Accordingly, I rewrote the graphics interface
+as a Pascal unit - see below. The source and 
+compiled version take up about 10Kbytes. I also
+made a few changes for my own satisfaction, and may
+do another rewrite later to clean up the interface.
+
+    If you think it worthwhile, and there are no
+legal problems because of the original copyright, 
+then I'll post the code to comp.sys.palmtops.
+ 
+    Meanwhile, you may be able to answer the
+following questions - or post answers to the 
+newsgroup.
+
+  - the graphics library docs mention 'system manager
+    compliance'. I guess that the system manager manages
+    the inbuilt software. What should/shouldn't a program
+    do to remain SMC?
+
+  - Is there further documentation available on the SM etc?
+    As an example, I am using a pretty cruddy editor from
+    MSDOS. I'd use the memo editor if I could call it, 
+    because its a bit better, and I'd save memory.
+
+  - John Marvin (jsm@patchnos.fc.hp.com) talked about SMC,
+    and EXM files in a posting dated 12OCT91. It looks like
+    he and possibly others are doing some reverse engineering
+    and discovering internal 95LX details. Does the company
+    intend releasing or has it released software details
+    on the machine? Can we put pressure on them to do so?
+ 
+Thanks again,
+             Mike Sunners
+
+(BTW, I may have missed discussion on the above over the
+last three months or so when I was in the US. )
+
+----------- Cut here -------------------------------
+{ HP 95LX Graphics Interface Unit for Turbo Pascal }
+{ Written by Mike Sunners, 16OCT91 }
+{ Original definition courtesy Everett Kaser,
+  everett%hpcvra@hplabs.hp.com }
+{ Comments to sunners@hfrd.dsto.oz.au }
+
+{ This unit is an adaptation of an interface library
+  comprising an assembly language program and a C header
+  file written by Everett Kaser.
+
+  These procedures/functions load a register record with
+  parameters, and then use the Turbo Pascal Intr
+  call to generate a software interrupt.
+
+  This interface is probably slower than the
+  original C version, but has the advantage that
+  a separate assembly language module is not required,
+  and hence the unit can be compiled using only Turbo
+  Pascal on the HP 95LX.
+
+  The image manipulation routines were modified slightly
+  for this unit. The G_ImageGet function allocates
+  heap space for the requested image, remembers the size
+  allocated, and returns a pointer of type G_Image to this
+  information. G_ImagePut displays the image as before. The
+  space allocated to the image is returned by calling
+  G_ImageDispose. }
+
+unit Graphics;
+interface
+
+type G_Mask = array [0..7] of byte;
+
+type G_Info =
+  record
+    vidmode,defmode : byte;
+    xpixels,ypixels : word;
+    xloc,yloc : integer;
+    linetype,rrule,colour : word;
+    xclipmin,yclipmin : integer;
+    xclipmax,yclipmax : integer;
+    xlorg,ylorg : integer;
+    fillmask : G_Mask;
+  end; { G_Info }
+
+type G_ImageRec =
+  record
+    p : pointer;
+    size : word;
+  end; { G_ImageRec }
+
+type G_Image = ^G_ImageRec;
+
+procedure G_Mode(BiosVideoMode : byte);
+procedure G_FillMask(mask : G_Mask);
+procedure G_GetInfo(var info : G_Info);
+procedure G_LorgA(x,y : integer);
+procedure G_ClipL(xmin,ymin,xmax,ymax : integer);
+procedure G_Rect(x,y : integer; fillflag : byte);
+procedure G_Draw(x,y : integer);
+procedure G_Point(x,y : integer);
+procedure G_Move(x,y : integer);
+procedure G_ColourSel(colour : byte);
+procedure G_RepRule(rrule : byte);
+procedure G_LineType(ltype : word);
+function  G_PointRead(x,y : integer) : byte;
+function  G_ImageGet(x1,y1,x2,y2 : integer) : G_Image;
+procedure G_ImageDispose(image : G_Image);
+procedure G_ImagePut(x,y : integer; image : G_Image; rrule : byte);
+procedure G_Text(x,y : integer; s : string; rotflag : byte);
+
+implementation
+uses dos;
+
+var rs : Registers; { Dos register set for software interrupt }
+
+type call_range = 0..15; { The range of software interrupts }
+
+procedure go(sw_int : call_range); { Generate an interrupt }
+begin
+  rs.ah := sw_int;
+  Intr($5f,rs);
+end; { go }
+
+procedure go_with_point(sw_int : call_range; x,y : integer);
+{ Load x and y parameters before generating an interrupt }
+begin
+  rs.cx := x;
+  rs.dx := y;
+  go(sw_int);
+end; { go_with_point }
+
+procedure G_Mode(BiosVideoMode : byte);
+begin
+  rs.al := BiosVideoMode;
+  go(0);
+end;
+
+procedure G_FillMask(mask : G_Mask);
+begin
+  rs.es := Seg(mask);
+  rs.di := Ofs(mask);
+  go(1);
+end; { G_FillMask }
+
+procedure G_GetInfo(var info : G_Info);
+begin
+  rs.es := Seg(info);
+  rs.di := Ofs(info);
+  go(2);
+end; { G_GetInfo }
+
+procedure G_LorgA(x,y : integer);
+begin
+  go_with_point(3,x,y);
+end; { G_LorgA }
+
+procedure G_ClipL(xmin,ymin,xmax,ymax : integer);
+begin
+  rs.si := xmax;
+  rs.di := ymax;
+  go_with_point(4,xmin,ymin);
+end; { G_ClipL }
+
+procedure G_Rect(x,y : integer; fillflag : byte);
+begin
+  rs.al := fillflag;
+  go_with_point(5,x,y);
+end;
+
+procedure G_Draw(x,y : integer);
+begin
+  go_with_point(6,x,y);
+end; { G_Draw }
+
+procedure G_Point(x,y : integer);
+begin
+  go_with_point(7,x,y);
+end; { G_Point }
+
+procedure G_Move(x,y : integer);
+begin
+  go_with_point(8,x,y);
+end; { G_Move }
+
+procedure G_ColourSel(colour : byte);
+begin
+  rs.al := colour;
+  go(9);
+end; { G_ColourSel }
+
+procedure G_RepRule(rrule : byte);
+begin
+  rs.al := rrule;
+  go(10);
+end; { G_RepRule }
+
+procedure G_LineType(ltype : word);
+begin
+  rs.cx := ltype;
+  go(11);
+end; { G_LineType }
+
+function G_PointRead(x,y : integer) : byte;
+begin
+  go_with_point(12,x,y);
+  G_PointRead := rs.al;
+end; { G_PointRead }
+
+function image_size(x1,y1,x2,y2 : integer) : word;
+{ Find the size required to store an image }
+begin
+  image_size := 8+((x2-x1+8) div 8)*(y2-y1+1);
+end; { image_size }
+
+type coerce_ptr =
+  record
+    ofs,seg : word;
+  end;
+
+function  G_ImageGet(x1,y1,x2,y2 : integer) : G_Image;
+var image : G_Image; { returned image }
+begin
+  new(image);
+  rs.si := x2;
+  rs.bp := y2;
+  image^.size := image_size(x1,y1,x2,y2);
+  GetMem(image^.p,image^.size); { allocate image on the heap }
+  rs.es := coerce_ptr(image^.p).seg;
+  rs.di := coerce_ptr(image^.p).ofs;
+  go_with_point(13,x1,y1);
+  G_ImageGet := image;
+end; { G_ImageGet }
+
+procedure G_ImageDispose(image : G_Image);
+begin
+  FreeMem(image^.p,image^.size); { dispose of the heap space }
+  Dispose(image); { dispose of the users pointer to the image }
+end; { G_ImageDispose }
+
+procedure G_ImagePut(x,y : integer; image : G_Image; rrule : byte);
+begin
+  rs.al := rrule;
+  rs.es := coerce_ptr(image^.p).seg;
+  rs.di := coerce_ptr(image^.p).ofs;
+  go_with_point(14,x,y);
+end; { G_Image_Put }
+
+procedure G_Text(x,y : integer;
+                 s : string;
+                 rotflag : byte);
+type coerce_str =
+  record
+    len : byte;
+    cStr : array [1..255] of char;
+  end;
+begin
+
+  { Zero terminate the (pascal) string so that
+    it looks like a C string. If s is full, then
+    there is no room for a zero byte, so report
+    an error. }
+
+  if Length(s)=255 then
+    s := 'G_Text: String too long';
+  with coerce_str(s) do
+    begin
+      cStr[len+1] := #0;
+      rs.ah := 15;
+      rs.al := rotflag;
+      rs.es := Seg(cStr);
+      rs.di := Ofs(cStr);
+      go_with_point(15,x,y);
+    end; { coercion }
+end; { G_Text }
+
+end.
+----- Cut here ------------------------------------------------
+Mike Sunners              DSTO Surveillance Research Laboratory
+sunners@hfrd.dsto.oz.au   Building 200 LABS HFRD
+Phone: +61 8 259 7141     PO Box 1650 SALISBURY AUSTRALIA 5108
+

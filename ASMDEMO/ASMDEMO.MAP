@@ -1,0 +1,23 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 001C3H 001C4H _TEXT                  CODE
+ 001C4H 00757H 00594H _DATA                  DATA
+ 00758H 0076BH 00014H _BSS                   BSS
+ 00770H 00F6FH 00800H STACK                  STACK
+
+ Origin   Group
+ 001C:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:0010       start
+ 001C:0598       _edata
+ 001C:05B0       _end
+
+  Address         Publics by Value
+
+ 0000:0010       start
+ 001C:0598       _edata
+ 001C:05B0       _end
+
+Program entry point at 0000:0010

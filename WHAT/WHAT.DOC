@@ -1,0 +1,48 @@
+NOTE!! Use of the included program and the information it reveals is done so
+	at your own risk.  Hewlett-Packard Company and Lotus Development
+	Corporation provide no support for the included information and have
+	made no commitment to ensure that this information will remain the
+	same in future ROM releases of the HP 95LX or any other products.
+
+WHAT.EXM is a small SysMgr compliant test program that searches through the
+SysMgr's data space, finds the Task Control Block (TCB) table, and displays
+the address where the table is currently located (on the second line of the 
+display), and displays a list of currently active tasks in the table and
+their state.
+
+NOTE!!! This is not a polished, completed application!!!!  If there's more
+than 11 active tasks, it's not gracefully handled, etc.  The intent of this
+is to show those of you who are interested a little more about the internals
+of the SysMgr.
+
+NOTE: TASK0 is the "business card", the thing that's ALWAYS in the table, the
+	thing that gets control when all other tasks have been quit.
+      SETUP and FILER will ALWAYS show up in the table, because their data
+	spaces are always allocated, so that they can be run at any time, even
+	if all other memory is taken up by other applications.
+
+The t_extname starts out (after a boot) as the original filename of the program
+that was used to build the ROM.  Once an application has been run, it
+"registers" a name which will replace the original filename in the TCB entry.
+
+NOTE: Built-in apps can be re-assigned to different keys by directly modifying
+	the 't_hotkey' entry in the TCB table.
+
+For those of you that have been playing around with HOTDOS to shell out to DOS
+with SysMgr apps open, you should then be able to run DEBUG and examine/modify
+this table in memory directly.
+
+NOTE: There's a flag in the source code (SYSMGR) that allows the program to be
+	compiled as either a SysMgr compliant app, or as a .COM program.
+	Obviously, this program has little use as a .COM, but it's a heck of a
+	lot easier to debug as a .COM!  I left this stuff in as an example of
+	how this kind of thing could be done.
+
+The included files are:
+
+	WHAT.ASM	the source code
+	WHAT.EXM	the SysMgr executable
+	WHAT		the MAKE file
+	WHAT.DOC	this file
+
+Everett Kaser

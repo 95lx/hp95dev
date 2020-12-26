@@ -1,0 +1,29 @@
+; Module menu.mac  Version 1.1  Date 06/19/91  Time 17:40:45 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+MAX_KEYW	equ	20
+
+;
+;  System Manager MENUDATA structure
+;
+;
+
+MENUDATA    struc
+
+menu_text         db 240 dup (0) ; menu text
+menu_count        dw ?           ; item count
+menu_highl        dw ?           ; highlight
+menu_tprompt      dw ?           ; tptompt
+menu_line         db MAX_KEYW dup (0)  ; menu line
+menu_offset       db MAX_KEYW dup (0)  ; menu offset
+menu_length       db MAX_KEYW dup (0)  ; menu length
+menu_letter       db MAX_KEYW dup (0)  ; menu letter
+menu_prompt       dw MAX_KEYW dup (0)  ; prompt offsets
+
+MENUDATA    ends

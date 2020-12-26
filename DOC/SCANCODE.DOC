@@ -1,0 +1,300 @@
+Scancode Conversion Tables.
+
+Int 09h translates scancodes to ASCII character codes or other
+hexadecimal codes as shown in the tables below. The first table
+shows scancodes returned when the Char function is OFF.  The
+second table shows scancodes returned when the Char function is ON.
+For each scancode, the
+tables give the equivalent character codes for each keyboard state:
+normal, shifted, [Ctrl] active, and [Alt] active.  If a scancode
+has an ASCII equivalent, the ASCII character is returned in register AL.
+If a converted code of the form
+"xxh/00" is shown, a zero value is returned in register AL to indicate
+that there is no ASCII value for the key combination.  BIOS Int 16h
+returns the value "XXh" in register AH. 
+
+Note: 
+Some shifted characters on Jaguar are non-shifted on standard IBM keyboards
+and some non-shifted characters on Jaguar are shifted on standard
+IBM keyboards.  For example,
+
+	[(] is non-shifted on Jaguar and shifted on IBM
+
+	[Home] is shifted on Jaguar and non-shifted on IBM.
+
+On these non-compatible key mappings, Int 0Bh will force 
+the status of the shift bits in 40h:17h
+to the state used by a compatible keyboard, regardless of
+the actual state of the shift keys.  For example:
+
+	[(] is reported to Int 09h as a shifted character even though it
+		is non-shifted on Jaguar.
+
+	[Home] is reported to Int 09h as a non-shifted character even though
+		it is shifted on Jaguar.
+
+In IBM compatible machines, the [Shift], [Ctrl], and [Alt] keys
+affect the interpretation of a scancode with ascending priority.  That
+is, the [Alt] key has the highest priority.  If [Alt] is pressed, the
+[Shift] and [Ctrl] keys have no affect.  Likewise, if [Ctrl] is pressed,
+the [Shift] key has no affect.  The only valid combination involving
+both [Ctrl] and [Alt] is the Warm Start sequence [CTRL][ALT][DEL]. 
+
+In Jaguar, however, there are some valid combinations of [Shift] and [Ctrl].
+In particular:
+
+	[Shift][Ctrl][PGUP] yields the compatible keycode for [Ctrl][PGUP]
+
+	[Shift][Ctrl][HOME] yields the compatible keycode for [Ctrl][HOME]
+
+	[Shift][Ctrl][PGDN] yields the compatible keycode for [Ctrl][PGDN]
+
+	[Shift][Ctrl][END] yields the compatible keycode for [Ctrl][END]
+
+	[Shift][Ctrl][ [ ] yields the compatible keycode for [Ctrl][ [ ]
+
+	[Shift][Ctrl][ ] ] yields the compatible keycode for [Ctrl][ ] ]
+
+
+******************************************************************************
+
+		SCANCODE TABLE WHEN CHAR FUNCTION IS OFF
+
+				CHARACTER CODES (hex)
+KEY LEGEND	SCANCODE	Normal	Shifted	Control	Alt	Shift+Control
+Normal	Shifted	Normal	Shifted	ah/al	ah/al	ah/al	ah/al	ah/al
+
+ESC	PrtScr	01	37	01/1B	PrtScr	01/1B
+TAB 		0F 	0F 	0F/09 	0F/00	94/00	A5/00	94/00
+F1		3B	3B	3B/00	54/00	5E/00	68/00	5E/00
+F2		3C	3C	3C/00	55/00	5F/00	69/00	5F/00
+F3		3D	3D	3D/00	56/00	60/00	6A/00	60/00
+F4		3E	3E	3E/00	57/00	61/00	6B/00	61/00
+F5		3F	3F	3F/00	58/00	62/00	6C/00	62/00
+F6		40	40	40/00	59/00	63/00	6D/00	63/00
+F7		41	41	41/00	5A/00	64/00	6E/00	64/00
+F8		42	42	42/00	5B/00	65/00	6F/00	65/00
+F9		43	43	43/00	5C/00	66/00	70/00	66/00
+F10		44	44	44/00	5D/00	67/00	71/00	67/00
+upcurs	PGUP	48	49	48/00	49/00	8D/00		84/00
+ON/OFF 	ON/OFF	70	70			A2/00	
+FILER	SETUP	72	71	A8/00	A4/00	AE/00	AB/00	AA/00
+COMM	`	73	29	AC/00	29/60	B2/00	AF/00
+APPT	~	74	29	B0/00	29/7E	B6/00	B3/00
+PHONE	!	75	02	B4/00	02/21	BA/00	B7/00
+MEMO	#	76	04	B8/00	04/23	BE/00	BB/00
+123	$	77	05	BC/00	05/24	C2/00	BF/00
++-*/	&	78	08	C0/00	08/26	C6/00	C3/00
+(	|	0A	2B	0A/28	2B/7C		80/00	2B/1C
+)	\	0B	2B	0B/29	2B/5C		81/00	2B/1C
+<--	<--	0E	0E	0E/08	0E/08	BREAK	0E/00	BREAK	
+DEL	INS	53	52	53/00	52/00	93/00		92/00
+lfcurs	HOME	4B	47	4B/00	47/00	73/00		77/00
+dncurs	PGDN	50	51	50/00	51/00	91/00		76/00
+rtcurs	END	4D	4F	4D/00	4F/00	74/00		75/00
+Q 		10	10	10/71	10/51	10/11	10/00	10/11
+W 		11	11	11/77	11/57	11/17	11/00	11/17
+E 		12	12	12/65	12/45	12/05	12/00	12/05
+R 		13	13	13/72	13/52	13/12	13/00	13/12
+T 		14	14	14/74	14/54	14/14	14/00	14/14
+Y 		15	15	15/79	15/59	15/19	15/00	15/19
+U		16	16	16/75	16/55	16/15	16/00	16/15
+I		17	17	17/69	17/49	17/09	17/00	17/09
+O		18	18	18/6F	18/4F	18/0F	18/00	18/0F
+P		19	19	19/70	19/50	19/10	19/00	19/10
+7	[	08	1A	08/37	1A/5B			1A/1B
+8	]	09	1B	09/38	1B/5D			1B/1D
+9	{	0A	1A	0A/39	1A/7B			1A/1B
+/	}	35	1B	35/2F	1B/7D			1B/1D
+
+
+
+		SCANCODE TABLE WHEN CHAR FUNCTION IS OFF
+
+				CHARACTER CODES (hex)
+KEY LEGEND	SCANCODE	Normal	Shifted	Control	Alt	Shift+Control
+Normal	Shifted	Normal	Shifted	ah/al	ah/al	ah/al	ah/al	ah/al
+
+A		1E	1E	1E/61	1E/41	1E/01	1E/00	1E/01
+S		1F	1F	1F/73	1F/53	1F/13	1F/00	1F/13
+D		20	20	20/64	20/44	20/04	20/00	20/04
+F		21	21	21/66	21/46	21/06	21/00	21/06
+G		22	22	22/67	22/47	22/07	22/00	22/07
+H		23	23	23/68	23/48	23/08	23/00	23/08
+J		24	24	24/6A	24/4A	24/0A	24/00	24/0A
+K		25	25	25/6B	25/4B	25/0B	25/00	25/0B
+L		26	26	26/6C	26/4C	26/0C	26/00	26/0C
+4	;	05	27	05/34	27/3B	
+5	:	06	27	06/35	27/3A	
+6	'	07	28	07/36	28/27	07/1E
+*	"	37	28	37/2A	28/22	96/00	37/00
+CTRL		1D	1D 
+Z		2C	2C	2C/7A	2C/5A	2C/1A	2C/00	2C/1A
+X		2D	2D	2D/78	2D/58	2D/18	2D/00	2D/18
+C		2E	2E	2E/63	2E/43	2E/03	2E/00	2E/03
+V		2F	2F	2F/76	2F/56	2F/16	2F/00	2F/16
+B		30	30	30/62	30/42	30/02	30/00	30/02
+N		31	31	31/6E	31/4E	31/0E	31/00	31/0E
+M		32	32	32/6D	32/4D	32/0D	32/00	32/0D
+ENTER		1C	1C	1C/0D	1C/0D	1C/0A	1C/00	1C/0A
+1	<	02	33	02/31	33/3C	
+2	>	03	34	03/32	34/3E	03/00
+3	?	04	35	04/33	35/3F	
+-	^	4A	07	4A/2D	07/5E	8E/00		07/1E
+Shift		2A	2A
+ALT		38	38
+Char		79	79
+<space>		39	39	39/20	39/20	39/20	39/20	39/20
+,	,	33	33	33/2C	33/2C		33/00	
+@	@	03	03	03/40	03/40	03/00	79/00	03/00
+MENU		7A	7A	C8/00	C9/00	CA/00	CB/00	CA/00
+Shift		36	36
+0	CAPS	0B	3A	0B/30
+.	SCRL	34	46	34/2E			34/00	BREAK
+=	_	0D	0C	0D/3D	0C/5F		83/00	0C/1F
++	%	4E	06	4E/2B	06/25	90/00	
+
+
+		SCANCODE TABLE WHEN CHAR FUNCTION IS ON
+
+				CHARACTER CODES (hex)
+KEY LEGEND	SCANCODE	Normal	Shifted	Control	Alt	Shift+Control
+Normal	Shifted	Normal	Shifted	ah/al	ah/al	ah/al	ah/al	ah/al
+
+ESC	PrtScr	01	37	01/1B	PrtScr	01/1B
+TAB 		0F 	0F 	0F/09 	0F/00	94/00	A5/00	94/00
+F1		3B	3B	DB/00	F4/00	5E/00	68/00	5E/00
+F2		3C	3C	DC/00	F5/00	5F/00	69/00	5F/00
+F3		3D	3D	DD/00	F6/00	60/00	6A/00	60/00
+F4		3E	3E	DE/00	F7/00	61/00	6B/00	61/00
+F5		3F	3F	DF/00	F8/00	62/00	6C/00	62/00
+F6		40	40	E0/00	F9/00	63/00	6D/00	63/00
+F7		41	41	E1/00	FA/00	64/00	6E/00	64/00
+F8		42	42	E2/00	FB/00	65/00	6F/00	65/00
+F9		43	43	E3/00	FC/00	66/00	70/00	66/00
+F10		44	44	E4/00	FD/00	67/00	71/00	67/00
+upcurs	PGUP	48	49	48/00	49/00	8D/00		84/00
+ON/OFF 	ON/OFF	70	70			A2/00	
+FILER	SETUP	72	71			AE/00	AB/00	AA/00
+COMM	`	73	29	04/EF	29/60	B2/00	AF/00
+APPT	~	74	29	05/F9	29/7E	B6/00	B3/00
+PHONE	!	75	02	06/AD	02/AD	BA/00	B7/00
+MEMO	#	76	04	07/EE	04/23	BE/00	BB/00
+123	$	77	05	08/B8	05/24	C2/00	BF/00
++-*/	&	78	08	09/A9	08/26	C6/00	C3/00
+(	|	0A	2B	0A/DD	2B/7C		80/00	2B/1C
+)	\	0B	2B	0B/29	2B/5C		81/00	2B/1C
+bkspc	backspc	0E	0E	0E/08	0E/08	BREAK	0E/00	BREAK	
+DEL	INS	53	52	53/00	52/00	93/00		92/00
+lfcurs	HOME	4B	47	4B/00	47/00	73/00		77/00
+dncurs	PGDN	50	51	50/00	51/00	91/00		76/00
+rtcurs	END	4D	4F	4D/00	4F/00	74/00		75/00
+Q 		10	10	10/A6	10/A6	10/11	10/00	10/11
+W 		11	11	11/A7	11/A7	11/17	11/00	11/17
+E 		12	12	12/91	12/92	12/05	12/00	12/05
+R 		13	13	*****	*****	13/12	13/00	13/12
+T 		14	14	*****	*****	14/14	14/00	14/14
+Y 		15	15	*****	*****	15/19	15/00	15/19
+U		16	16	*****	*****	16/15	16/00	16/15
+I		17	17	*****	*****	17/09	17/00	17/09
+O		18	18	18/9B	18/9D	18/0F	18/00	18/0F
+P		19	19	19/E7	19/E8	19/10	19/00	19/10
+7	[\(dd	08	1A	08/AC	1A/5B			1A/1B
+8	]\(dd	09	1B	09/AB	1B/5D			1B/1D
+9	{	0A	1A	0A/F3	1A/7B			1A/1B
+/	}	35	1B	35/F6	1B/7D			1B/1D
+
+***** Mute function enabled.
+
+
+		SCANCODE TABLE WHEN CHAR FUNCTION IS ON
+
+				CHARACTER CODES (hex)
+KEY LEGEND	SCANCODE	Normal	Shifted	Control	Alt	Shift+Control
+Normal	Shifted	Normal	Shifted	ah/al	ah/al	ah/al	ah/al	ah/al
+
+A		1E	1E	1E/86	1E/8F	1E/01	1E/00	1E/01
+S		1F	1F	1F/E1	1F/E1	1F/13	1F/00	1F/13
+D		20	20	20/D0	20/D1	20/04	20/00	20/04
+F		21	21	21/9F	21/9F	21/06	21/00	21/06
+G		22	22	22/CF	22/CF	22/07	22/00	22/07
+H		23	23	23/BE	23/BE	23/08	23/00	23/08
+J		24	24	24/24	24/24	24/0A	24/00	24/0A
+K		25	25	25/BD	25/BD	25/0B	25/00	25/0B
+L		26	26	26/9C	26/9C	26/0C	26/00	26/0C
+4	;	05	27	05/34	27/3B	
+5	:	06	27	06/35	27/3A	
+6	'	07	28	07/36	28/27	07/1E
+*	"	37	28	37/9E	28/22	96/00	37/00
+CTRL		1D	1D 
+Z		2C	2C	2C/F4	2C/F4	2C/1A	2C/00	2C/1A
+X		2D	2D	2D/F8	2D/F8	2D/18	2D/00	2D/18
+C		2E	2E	2E/87	2E/80	2E/03	2E/00	2E/03
+V		2F	2F	2F/F5	2F/F5	2F/16	2F/00	2F/16
+B		30	30	30/FE	30/FE	30/02	30/00	30/02
+N		31	31	31/D5	31/D5	31/0E	31/00	31/0E
+M		32	32	32/E6	32/E6	32/0D	32/00	32/0D
+ENTER		1C	1C	1C/0D	1C/0D	1C/0A	1C/00	1C/0A
+1	<	02	33	02/AE	33/FB	
+2	>	03	34	03/AF	34/FD	03/00
+3	?	04	35	04/A8	35/FC	
+-	^	4A	07	4A/F0	07/5E	8E/00		07/1E
+Shift		2A	2A
+ALT		38	38
+Char		79	79
+<space>		39	39	39/20	39/20	39/20	39/20	39/20
+,	,	33	33	33/F7	33/F7		33/00	
+@	@	03	03	03/40	03/40	03/00	79/00	03/00
+MENU		7A	7A		C9/00	CA/00	CB/00	CA/00
+Shift		36	36
+0	CAPS	0B	3A	0B/30
+.	SCRL	34	46	34/FA			34/00	BREAK
+=	_	0D	0C	0D/F2	0C/5F		83/00	0C/1F
++	%	4E	06	4E/F1	06/25	90/00	
+
+
+			MUTE KEY SEQUENCES
+
+		CHARACTER CODES (hex)
+		Normal	Shifted	Control	Alt
+KEY SEQUENCE	ah/al	ah/al	ah/al	ah/al
+
+[Char][r][a]	1E/A0 	1E/B5 	1E/01 	1E/00
+[Char][r][e]	12/82	12/90 	12/05 	12/00
+[Char][r][i]	17/A1	17/D6	17/09	17/00
+[Char][r][o]	18/A2 	18/E0 	18/10 	18/00
+[Char][r][u]	16/A3	16/E9	16/15	16/00
+[Char][r][y]	15/EC  	15/ED	15/19	15/00
+[Char][r][n]	31/6E	31/4E	31/0E	31/00
+
+[Char][t][a]	1E/85 	1E/B7 	1E/01 	1E/00
+[Char][t][e]	12/8A	12/D4 	12/05 	12/00
+[Char][t][i]	17/8D	17/DE	17/09	17/00
+[Char][t][o]	18/95 	18/E3 	18/10 	18/00
+[Char][t][u]	16/97	16/EB	16/15	16/00
+[Char][t][y]	15/79	15/59	15/19	15/00
+[Char][t][n]	31/6E	31/4E	31/0E	31/00
+
+[Char][y][a]	1E/83	1E/B6 	1E/01 	1E/00
+[Char][y][e]	12/88 	12/D2	12/05 	12/00
+[Char][y][i]	17/8C	17/D7	1/09	17/00
+[Char][y][o]	18/93	18/E2 	18/10 	18/00
+[Char][y][u]	16/96	16/EA	1/15	16/00
+[Char][y][y]	15/79	15/59	1/19	15/00
+[Char][y][n]	31/6E	31/4E	3/0E	31/00
+
+[Char][u][a]	1E/84 	1E/8E 	1E/01 	1E/00
+[Char][u][e]	12/89	12/D3 	12/05 	12/00
+[Char][u][i]	17/8B	17/D8	17/09	17/00
+[Char][u][o]	18/94 	18/99 	18/10 	18/00
+[Char][u][u]	16/81	16/9A	16/15	16/00
+[Char][u][y]	15/98	15/59	15/19	15/00
+[Char][u][n]	31/6E	31/4E	31/0E	31/00
+
+[Char][i][a]	1E/C6 	1E/C7 	1E/01 	1E/00
+[Char][i][e]	12/65	12/45 	12/05 	12/00
+[Char][i][i]	17/69	17/49	17/09	17/00
+[Char][i][o]	18/E4 	18/E5 	18/10 	18/00
+[Char][i][u]	16/75	16/55	16/15	16/00
+[Char][i][y]	15/79	15/59	15/19	15/00
+[Char][i][n]	31/A4	31/A5	31/0E	31/00

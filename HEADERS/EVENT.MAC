@@ -1,0 +1,76 @@
+; Module event.mac  Version 1.1  Date 06/19/91  Time 17:40:10 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+; Messages returned from the System Manager
+
+E_NONE	equ	0
+E_KEY	equ	1
+E_BREAK	equ	2
+E_ACTIV	equ	3
+E_DEACT	equ	4
+E_TERM	equ	5
+E_BRIDGE equ	6
+E_GROW	equ	7
+E_SHRINK equ	8
+E_ALARM_EXP equ	9
+E_ALARM_DAY equ	10
+E_TIMECHANGE equ 11
+
+
+; message passed to sysmgr in e_kind field
+; This value is only tested when sysmgr is expecting conclusion
+; of bridge and grow/shrink calls.
+
+E_RESUME   equ	0ffffh
+
+
+
+EVENT	STRUC
+	e_kind	dw	0	; constant value from above
+	e_data	dw	0	; ASCII (CP 850) translation of keystroke 
+	e_scan	db	0	; scan code from BIOS 
+	e_shifts db	0	; shifts register, when function returns 
+	e_lics	dw	0	; LICS translation of keystroke 
+	e_fkey_num dw	0	; function key number for 123 only 
+				; not necessarily when key struck 
+	e_bridgep dd	0	; pointer to 123 bridge data structure 
+EVENT ENDS
+
+
+
+; Field usages by event_kind 
+;
+;	TYPE		FIELDS USED
+;	-----------------------------------------------	
+;	E_NONE		shifts
+;	E_KEY		data,scan,fkey_num,lics,shifts
+;	E_BREAK		none
+;	E_ACTIV		none
+;	E_DEACT		none
+;	E_TERM		none
+;	E_BRIDGE	bridge
+;	E_GROW		data (paragpraphs to grow)
+;	E_SHRINK	data (requested paragpraphs to shrink on input)
+; 	E_ALARM_EXP	data (lo byte has app spec code, bridge has 4 byte val)
+; 	E_ALARM_DAY	none
+;	E_TIMECHANGE	bridge (-> timechange structure)
+
+
+; Return fields on RESUMPTIONS from applications
+; for SHRINK messages:
+;			data = number of paragraphs requested if successfull
+;			     = 0 if error
+; for GROW messages:	none
+; for BRIDGE messages:  bridge parameter block is filled in.
+
+	
+
+FunEVENTm	equ	0
+FunEVENTmn	equ	1
+FunEVENTnofini	equ	7

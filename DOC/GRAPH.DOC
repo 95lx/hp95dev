@@ -1,0 +1,948 @@
+	__________________________________
+
+	HP 95LX Low-level Graphics Support
+	__________________________________
+
+
+	Copyright 1991 Hewlett-Packard Company.  All rights reserved.
+
+	____________
+	INTRODUCTION
+
+	The package of low-level routines provided in the HP 95LX that are
+	available for use by applications programs support these functions:
+
+		 1) setting the display mode to alpha or graphics.
+		 2) setting a fill mask.
+		 3) getting information about the current graphics settings.
+		 4) setting a logical origin to which all other graphics
+			operations are relative.
+		 5) setting a rectangular clip region.
+		 6) drawing an outlined, solid-filled, or pattern-filled
+			rectangle.
+		 7) drawing a line.
+		 8) plotting a point.
+		 9) moving the current pen location.
+		10) setting the current pen color.
+		11) setting the current replacement rule.
+		12) setting the current line-type.
+		13) reading the current color value of a point.
+		14) reading a rectangular image.
+		15) writing a rectangular image.
+		16) labeling text using the internal 6x8 font.
+
+	All of the routines which plot to the display always obey the current
+	logical origin, clip region, pen color, replacement rule, and (where
+	appropriate) line-type and fill-mask.
+
+	The pen color can be 0 or 1.
+
+	The replacement rule can be one of FORCE, AND, OR, or XOR.  Writing
+	a rectangular image can optionally invert the image before applying
+	the specified replacement rule.  Writing an image is different from
+	all other plotting in that it uses an argument as the replacement
+	rule rather than the current replacement rule.
+
+	The line-type is a 16-bit value whose bits are used repeatedly when
+	drawing a line or an outlined rectangle.
+
+	The fill-mask is an 8-byte value which specifies an 8-bit by 8-bit
+	rectangular mask which is used repeatedly when drawing a pattern-filled
+	rectangle.
+
+	The general process to do graphics is:
+
+		1) set the display mode to graphics
+		2) set the desired pen color, replacement rule, linetype,
+			fillmask, logical origin, and clip region, if different
+			than the default values set by the set-mode function.
+		3) perform the desired drawing using the attributes setup by
+			step 2).
+		4) repeat steps 2) and 3) until done.
+		5) set the display mode back to alpha.
+
+	The graphics routines are accessed through software interrupt 5F (hex).
+	The required arguments are loaded into specific CPU registers, the
+	requested function number is loaded into the AH register, and then an
+	INT 5Fh instruction is executed.  Unless otherwise stated, all
+	functions preserve ALL registers except for AX.
+
+	X-coordinates always get larger (more positive) when moving to the
+	right on the display.  Y-coordinates always get larger when moving
+	down (towards the bottom) on the display.  The default origin is in
+	the top-left corner of the display.
+
+	Although the interface is designed primarily as an assembly language
+	interface, it is simple to write an assembly language module that can
+	provide a library of corresponding functions to a C program.  A sample
+	is provided in Appendix A.
+	______________
+	SET VIDEO MODE
+
+	Forces the current video mode to alpha or graphics and clears the
+	display.
+
+	Entry conditions:
+
+		AH = 0
+		AL = requested mode.
+			07h = alpha (system manager compliant)
+			20h = graphics (system manager compliant)
+			87h = alpha (non-system manager)
+			A0h = graphics (non-system manager)
+
+	Sub-functions 07h and 20h call the System Manager routine to change
+	video modes, thus letting the System Manager know that the display has
+	changed modes and the display contents destroyed.  This is important
+	for any applications which are intended to be system manager compliant.
+
+	Sub-functions 87h and A0h call the BIOS directly in order to change
+	display modes, thus by-passing the System Manager.  These should be
+	used by programs that are NOT System Manager compliant, so that they
+	will function correctly whether the system was booted into the System
+	Manager or if it was booted straight into DOS (by placing a SHELL=
+	command in a CONFIG.SYS file).
+
+	After a SET_MODE call to change to graphics, the defaults are:
+
+		Logical origin		(0, 0)
+		Clip region		(0, 0) thru (239, 127)
+		Pen location		(0, 0)
+		Pen color		1
+		Replacement rule	FORCE
+		Line-type		0FFFFh
+		Fill mask		0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh
+
+	Sample assembly code:
+
+		mov	ax,0020h	; set mode to GRAPHICS
+		int	5fh
+			.
+			.
+			.
+		mov	ax,0007h	; set mode to ALPHA
+		int	5fh
+
+	_____________
+	SET FILL MASK
+
+	Sets the eight-byte fill mask used by DRAW_RECTANGLE when pattern-
+	filling.
+
+	Entry conditions:
+
+		AH = 1
+		ES:DI = address of 8 bytes of fillmask.
+
+	The default fillmask after a mode set to graphics is eight bytes of
+	0ffh (which would result in a solid-fill).
+
+	The fillmask is always aligned with the byte boundaries of the display
+	memory, and it is then clipped by the rectangle being drawn.  This
+	means that as the rectangle is shifted bit-by-bit, the pattern appears
+	to exist on a plane behind the rectangle, and that the rectangle is
+	a moving window onto that plane.  It's tough to describe, and a little
+	experimentation should make it plain.
+
+	Sample assembly code:
+
+		fmask1	db	055h, 0aah, 055h, 0aah, 055h, 0aah, 055h, 0aah
+			.
+			.
+			.
+		assume	es:dgroup
+		lea	di,fmask1
+		mov	ah,1
+		int	5fh		; set fillmask pattern to FMASK1
+
+	________________________________
+	GET CURRENT GRAPHICS INFORMATION
+
+	Returns current information about the state of the graphics functions.
+
+	At entry:
+
+		AH = 2
+		ES:DI = address of a 36-byte long buffer into which the
+			graphics information will be placed.  At exit from
+			this function, the buffer contents will be:
+
+		      offset  size
+			 0   1-byte CURRENT VIDEO MODE
+			 1   1-byte DEFAULT VIDEO MODE
+			 2   1-word WIDTH OF DISPLAY IN PIXELS
+			 4   1-word HEIGHT OF DISPLAY IN PIXELS
+			 6   1-word CURRENT X-LOCATION OF PEN
+			 8   1-word CURRENT Y-LOCATION OF PEN
+			10   1-word CURRENT LINE-TYPE
+			12   1-word CURRENT REPLACEMENT RULE
+			14   1-word CURRENT PEN COLOR
+			16   1-word CURRENT X-MINIMUM OF CLIP REGION
+			18   1-word CURRENT X-MAXIMUM OF CLIP REGION
+			20   1-word CURRENT Y-MINIMUM OF CLIP REGION
+			22   1-word CURRENT Y-MAXIMUM OF CLIP REGION
+			24   1-word CURRENT X-LOCATION OF LOGICAL ORIGIN
+			26   1-word CURRENT Y-LOCATION OF LOGICAL ORIGIN
+		      28-35  8-bytes CURRENT FILL MASK (for rectangle fill)
+
+	At exit:
+		DX:AX = address of the 36-byte long buffer (for return to C).
+
+	Sample assembly code:
+
+		infobuf		label	byte
+		curmode		db	?
+		defmode		db	?
+		dspwidth	dw	?
+		dspheight	dw	?
+		curpenx		dw	?
+		curpeny		dw	?
+		curlinetype	dw	?
+		curreprule	dw	?
+		curpen		dw	?
+		curclipminx	dw	?
+		curclipmaxx	dw	?
+		curclipminy	dw	?
+		curclipmaxy	dw	?
+		curlogorgx	dw	?
+		curlogorgy	dw	?
+		curfmask	db	8 dup (?)
+				.
+				.
+				.
+		assume	es:dgroup
+		lea	di,infobuf
+		mov	ah,2		; read current video info into infobuf
+		int	5fh
+	__________________
+	SET LOGICAL ORIGIN
+
+	Sets the logical origin in terms of absolute screen pixels, regardless
+	of previous settings of the logical origin or clip region.  The (X,Y)
+	of the logical origin may be specified off of the actual physical
+	screen (ie, negative values or greater than (239, 127).  All other
+	coordinate arguments in this graphics system are relative to the
+	logical origin, including those used to specify the clip region.
+
+	SET LOGICAL ORIGIN resets the CLIP REGION to the entire physical
+	display (0,0) to (239,127).  So, if clip_region is used, it must be
+	set AFTER the set_logical_origin.
+
+	The default logical origin after a mode set is (0,0).
+
+	At entry:
+
+		AH = 3
+		CX = x coordinate
+		DX = y coordinate
+
+	Sample assembly code:
+
+		mov	ah,3
+		mov	cx,120		; move log org to approximately the
+		mov	dx,64		;   center of the display
+		int	5fh
+
+	_______________
+	SET CLIP REGION
+
+	This function sets the coordinates of the upper-left and lower-right
+	corners of the clip rectangle.
+
+	All reading/writing of the display in this graphics system is limited
+	(clipped) by the current CLIP REGION.
+
+	Default after mode set is (0,0) and (239,127).
+
+	At entry:
+
+		AH = 4 
+		CX = x-minimum coordinate
+		DX = y-minimum coordinate
+		SI = x-maximum coordinate
+		DI = y-maximum coordinate
+
+	Sample assembly code:
+
+		mov	ah,4		; clip (limit) all drawing to the
+		mov	cx,120		;    right half of the display
+		mov	dx,0
+		mov	si,239
+		mov	dx,127
+		int	5fh
+
+	______________
+	DRAW RECTANGLE
+
+	This draws a rectangle which has two diagonally opposite corners at
+	the current pen location and (CX,DX).  Hence, you will usually first
+	do a MOVE_PEN, then a DRAW_RECTANGLE.  ALL rectangle draws obey the
+	current replacement rule.  The pen location is left at the starting
+	location (it is not changed).
+
+	If the rectangle drawn is just an outline, it is drawn using the
+	current line-type.  If the rectangle drawn is pattern-filled, it uses
+	the current fill-mask.  In all cases the current pen color and replace-
+	ment rule are used.
+
+	At entry:
+		AH = 5
+		AL = fill flag	0==outline, current linetype and pen color
+				1==solid fill, current pen color
+				2==pattern fill, current fillmask and pen color
+		CX = x-coordinate of second corner of rectangle
+		DX = y-coordinate of second corner of rectangle
+
+	Sample assembly code:
+
+		mov	ah,8		; move pen to (50,74)
+		mov	cx,50
+		mov	dx,74
+		int	5fh
+
+		mov	ah,5
+		mov	al,1		; solidfill rectangle to (101, 99)
+		mov	cx,101
+		mov	dx,99
+		int	5fh
+
+	_________
+	DRAW LINE
+
+	This draws a line from the current pen location to (CX,DX) using the
+	current pen color, linetype, and replacement rule.  The pen location
+	is left at the end point.  If another DRAW_LINE is executed after the
+	first without an intervening MOVE_PEN, the starting point is not
+	plotted.  This is to avoid the problem of drawing connecting lines
+	with a replacement rule of XOR.  Since the starting point of the second
+	line is the same as the ending point of the first line, it would get
+	plotted twice, which in XOR mode is the same as not plotting it at all.
+
+	At entry:
+
+		AH = 6
+		CX = x-coordinate of end point
+		DX = y-coordinate of end point
+
+	Sample assembly code:
+
+		mov	ah,6
+		mov	cx,21
+		mov	dx,10		; draw from current pen location
+		int	5fh		;   to (21, 10)
+	__________
+	PLOT POINT
+
+	This moves the current pen location to CX,DX and plots a single
+	point there using the current pen color and replacement rule.
+
+	At entry:
+
+		AH = 7
+		CX = x-coordinate of point
+		DX = y-coordinate of point
+
+	Sample assembly code:
+
+		mov	ah,7
+		mov	cx,239		; plot point at (239, 127)
+		mov	dx,127
+		int	5fh
+
+	________
+	MOVE PEN
+
+	This moves the current pen location to (CX,DX).  The default location
+	after a mode set is (0,0).
+
+	At entry:
+
+		AH = 8
+		CX = x-coordinate
+		DX = y-coordinate
+
+	Sample assembly code:
+
+		mov	ah,8
+		mov	cx,22		; move pen to (22, 44)
+		mov	dx,44
+		int	5fh
+
+	_____________
+	SET PEN COLOR
+
+	Sets the current pen color to 0 or 1.  The default after a mode
+	set is 1 (black).
+
+	At entry:
+
+		AH = 9
+		AL = new pen color (0 for white or 1 for black)
+
+	Sample assembly code:
+
+		mov	ah,9
+		mov	al,0		; set pen color to white (0)
+		int	5fh
+
+	____________________
+	SET REPLACEMENT RULE
+
+	The replacement rule controls how the current pen color is combined
+	with the existing color of a pixel on the display when performing
+	any plotting function (except WRITE_AREA, which has its own replacement
+	rule specified with each call).  If the current replacement rule is
+	FORCE then the resulting color of a pixel is equal to the current pen
+	color at the time of the plotting action.  For the other three replace-
+	ment rules (AND, OR, and XOR), the resulting color is the logical
+	operation between the current screen pixel color and the current pen
+	color.
+
+	The default replacement rule after a mode set is 0 (FORCE).
+
+	At entry:
+
+		AH = 10 (0Ah)
+		AL = new replacement rule	0==FORCE
+						1==AND
+						2==OR
+						3==XOR
+	Sample assembly code:
+
+		mov	ah,10
+		mov	al,3		; set replacement rule to XOR
+		int	5fh
+
+	_____________
+	SET LINE TYPE
+
+	This is a 16-bit value that is repeated over and over as each pixel
+	of a line or an outlined rectangle is drawn.  0xFFFF will cause solid
+	lines to be drawn. The default after a mode set is 0xFFFF (solid line).
+
+	At entry:
+
+		AH = 11 (0Bh)
+		CX = new line type
+
+	Sample assembly code:
+
+		mov	ah,11
+		mov	cx,0c440h	; set line type to XX000X000X000000
+		int	5fh
+
+	__________
+	READ POINT
+
+	This returns AX==the color (0 for white, 1 for black) of the requested
+	point.  The current pen location is not modified.
+
+	At entry:
+
+		AH = 12 (0Ch)
+		CX = x-location of point to read
+		DX = y-location of point to read
+
+	Sample assembly code:
+
+		mov	ah,12
+		mov	cx,49		; read point (49,57)
+		mov	dx,57
+		int	5fh
+
+	_____________________
+	READ AREA (get image)
+
+	This reads a rectangular area of the display into the specified
+	buffer.  There is an 8-byte header at the beginning (specifying
+	number of planes, number of bits/pixel, width of image, and
+	height of image.  The first two are always equal to 1 on the HP 95LX.
+	The size needed for the buffer is:
+
+			8 + ((x2-x1+8)/8) * (y2-y1+1) bytes
+
+	The diagonally opposite corner points (x1, y1) and (x2, y2) are
+	included in the read area.  Bits with a value of 0 are added to
+	the right end of each row of pixels (if necessary) to fill out an
+	integral number of bytes of data for that row.  The image is always
+	left justified within the buffer regardless of its byte-alignment on
+	the display.
+
+	At entry:
+
+		AH = 13 (0Dh)
+		CX = x-coordinate of corner 1
+		DX = y-coordinate of corner 1
+		SI = x-coordinate of corner 2
+		BP = y-coordinate of corner 2
+		ES:DI = address of buffer for image
+
+	Sample assembly code:
+
+		tmpbuf	db	56 dup (?)
+		.
+		.
+		.
+		assume	es:dgroup
+		mov	ah,13
+		mov	cx,24
+		mov	dx,55
+		mov	si,41		; read a rectangular area of the screen
+		mov	bp,70		;   from (24,55) thru (41,70) into
+		lea	di,tmpbuf	;   'tmpbuf'.
+		int	5fh
+	______________________
+	WRITE AREA (put image)
+
+	This writes to a rectangular area of the display from a specified
+	buffer.  The buffer should have the same eight-byte header described in 
+	READ_AREA (above).  This call is different from all other "write"-type
+	calls in that it specifies its own replacement rule rather than using
+	the "current" replacement rule.  It expands upon the replacement
+	rule types by allowing the image to be inverted before being combined
+	in the usual fashion (according to FORCE, AND, OR, or XOR) with the
+	display contents.  This does not modify the contents of the buffer.
+
+	If the entire image doesn't fit on the display, none of it is drawn.
+
+	At entry:
+
+		AH = 14 (0Eh)
+		AL = replacement rule	0 FORCE
+					1 AND
+					2 OR
+					3 XOR
+					4 invert image and then FORCE
+					5 invert image and then AND
+					6 invert image and then OR
+					7 invert image and then XOR
+		CX = x-location of top-left corner of image destination
+		DX = y-location of top-left corner of image destination
+		ES:DI = address of image
+
+	Sample assembly code:
+
+		tmpbuf	db	56 dup (?)
+		.
+		.
+		.
+		assume	es:dgroup
+		mov	ah,14
+		mov	al,7		; invert, then XOR
+		mov	cx,133
+		mov	dx,66
+		lea	di,tmpbuf	; put image 'tmpbuf' at (133,66)
+
+	__________
+	WRITE TEXT
+
+	Writes the specified text (all 256 chars are legal EXCEPT 0)
+	to the specified location, horizontally or rotated 90 degrees
+	counter-clockwise from horizontal, using the BIOS 6x8 font, the
+	current pen color and replacement rule. The specified location (CX, DX)
+	is the top-left corner of the text string, or if the rotate flag
+	is non-zero, the string is rotated 90 degrees counterclockwise about
+	the point (CX, DX) (such that it is now the bottom-left corner of the
+	text).
+
+	At entry:
+
+		AH = 15 (0Fh)
+		AL = rotate flag.
+		CX = x-coordinate of top-left corner of first character
+		DX = y-coordinate of top-left corner of first character
+		ES:DI = address of null-terminated string
+
+	Sample assembly code:
+
+		txtstr	db	"This is a test",0
+		.
+		.
+		.
+		assume	es:dgroup
+		mov	ah,15
+		mov	al,0		; plot text horizontally
+		mov	cx,124
+		mov	dx,37		; at (124, 37)
+		lea	di,txtstr
+		int	5fh
+
+
+	___________________________________________________________________
+	APPENDIX A: Sample assembly language module of C-callable functions
+
+;ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+;л Graphics interface module for calling Jaguar graphics from C programs л
+;л Copyright 1990 Hewlett Packard Company.  All rights reserved.	 л
+;л Author: Everett Kaser  August 14, 1990.				 л
+;ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+	.MODEL	LARGE,C
+
+	.CODE
+	assume	ds:nothing
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_Mode(int BiosVideoMode);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_Mode		PROC	BiosVideoMode:word
+	mov	ax,BiosVideoMode
+	xor	ah,ah
+	int	5fh
+	ret
+G_Mode		endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_FillMask(maskptr);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_FillMask	PROC	uses ES DI, maskptr:dword
+	les	di,maskptr
+	mov	ah,1
+	int	5fh
+	ret
+G_FillMask	endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_GetInfo(G_INFO *gp);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_GetInfo	PROC	uses ES DI, gp:dword
+	les	di,gp
+	mov	ah,2
+	int	5fh
+	ret
+G_GetInfo	endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_LorgA(int x, int y);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_LorgA		PROC	x:word, y:word
+	mov	cx,x
+	mov	dx,y
+	mov	ah,3
+	int	5fh
+	ret
+G_LorgA		endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_ClipL(int xmin, int ymin, int xmax, int ymax);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_ClipL		PROC	uses SI DI, xmin:word, ymin:word, xmax:word, ymax:word
+	mov	cx,xmin
+	mov	dx,ymin
+	mov	si,xmax
+	mov	di,ymax
+	mov	ah,4
+	int	5fh
+	ret
+G_ClipL		endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_Rect(int x, int y, int fillflag);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_Rect		PROC	x:word, y:word, fill:word
+	mov	cx,x
+	mov	dx,y
+	mov	ax,fill
+	mov	ah,5
+	int	5fh
+	ret
+G_Rect		endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_Draw(int x, int y);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_Draw		PROC	x:word, y:word
+	mov	cx,x
+	mov	dx,y
+	mov	ah,6
+	int	5fh
+	ret
+G_Draw		endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_Point(int x, int y);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_Point		PROC	x:word, y:word
+	mov	cx,x
+	mov	dx,y
+	mov	ah,7
+	int	5fh
+	ret
+G_Point		endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_Move(int x, int y);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_Move		PROC	x:word, y:word
+	mov	cx,x
+	mov	dx,y
+	mov	ah,8
+	int	5fh
+	ret
+G_Move		endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_ColorSel(int color);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_ColorSel	PROC	color:word
+	mov	ax,color
+	mov	ah,9
+	int	5fh
+	ret
+G_ColorSel	endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_RepRule(int rrule);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_RepRule	PROC	rrule:word
+	mov	ax,rrule
+	mov	ah,0ah
+	int	5fh
+	ret
+G_RepRule	endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_LineType(int ltype);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_LineType	PROC	ltype:word
+	mov	cx,ltype
+	mov	ah,0bh
+	int	5fh
+	ret
+G_LineType	endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_PointRead(int x, int y);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_PointRead	PROC	x:word, y:word
+	mov	cx,x
+	mov	dx,y
+	mov	ah,0ch
+	int	5fh
+	ret
+G_PointRead	endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_ImageGet(int x1, int y1, int x2, int y2, char far *image);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_ImageGet	PROC	uses ES SI DI, x1:word, y1:word, x2:word, y2:word, image:dword
+	mov	cx,x1
+	mov	dx,y1
+	mov	si,x2
+	les	di,image
+	mov	bp,y2
+	mov	ah,0dh
+	int	5fh
+	ret
+G_ImageGet	endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_ImagePut(int x, int y, char far *image, int replacerule);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_ImagePut	PROC	uses ES DI, x:word, y:word, image:dword, reprule:word
+	mov	cx,x
+	mov	dx,y
+	les	di,image
+	mov	ax,reprule
+	mov	ah,0eh
+	int	5fh
+	ret
+G_ImagePut	endp
+
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+; G_Text(int x, int y, char far *string, rotflag);
+;лллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+
+G_Text		PROC	uses DS ES SI DI, x:word, y:word, string:dword, rotflag:word
+	mov	ax,rotflag
+	mov	cx,x
+	mov	dx,y
+	les	di,string
+	mov	ah,0fh
+	int	5fh
+	ret
+G_Text		endp
+
+@curseg	ends
+	end
+	______________________________________________________________________
+	APPENDIX B: Sample header file for use with C programs and APPENDIX A.
+
+
+/*ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+  л Definitions.							л
+  ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл*/
+
+#define	G_ALPHA		0x07
+#define	G_GRAPHICS	0x20
+
+#define	G_FORCE		0
+#define	G_AND		1
+#define	G_OR		2
+#define	G_XOR		3
+#define	G_NOTFORCE	4
+#define	G_NOTAND	5
+#define	G_NOTOR		6
+#define	G_NOTXOR	7
+
+#define	G_OUTLINE	0
+#define	G_SOLIDFILL	1
+#define	G_PATTERNFILL	2
+
+#define	MINCOLOR	0
+#define	MAXCOLOR	1
+
+/*ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+  л Structures.								л
+  ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл*/
+
+typedef	struct g_info {
+	unsigned char	vidmode;
+	unsigned char	defmode;
+	unsigned int	xpixels;
+	unsigned int	ypixels;
+	int		xloc;
+	int		yloc;
+	unsigned int	linetype;
+	int		rrule;
+	unsigned int	color;
+	int		xclipmin;
+	int		yclipmin;
+	int		xclipmax;
+	int		yclipmax;
+	int		xlorg;
+	int		ylorg;
+	unsigned char	fillmask[8];
+	} G_INFO;
+
+/*ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл
+  л Graphics library function definitions.  All x,y locations are rel-	л
+  л   ative to the current logical origin unless specified otherwise.	л
+  ллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллллл*/
+void   far cdecl	G_Mode(int);
+G_INFO far * cdecl	G_GetInfo(G_INFO far *);
+void   far cdecl	G_ColorSel(int);
+void   far cdecl	G_RepRule(unsigned int);
+void   far cdecl	G_LineType(unsigned int);
+void   far cdecl	G_FillMask(unsigned char far *);
+void   far cdecl	G_LorgA(int, int);
+void   far cdecl	G_ClipL(int, int, int, int);
+void   far cdecl	G_Move(int, int);
+void   far cdecl	G_Point(int, int);
+int    far cdecl	G_PointRead(int, int);
+void   far cdecl	G_Draw(int, int);
+void   far cdecl	G_Rect(int, int, int);
+void   far cdecl	G_ImageGet(int, int, int, int, char far *);
+void   far cdecl	G_ImagePut(int, int, char far *, int);
+void   far cdecl	G_Text(int, int, char far *, int);
+
+/*ммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммм*/
+
+/**** G_MODE(mode): mode = {G_TEXT | G_GRAPHICS}
+	changes the display mode to text or graphics		*/
+
+/**** G_GETINFO(GraphInfoPtr): GraphInfoPtr is a far pointer to a buffer of
+	the programmers choosing where the graphics information will be copied.
+	See the typedef for the G_INFO structure in this file for the contents
+	of the buffer.	*/
+/*ммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммм*/
+
+/**** G_COLORSEL(color): color = 0 or 1
+	sets the current pen to "color"				*/
+
+/**** G_REPRULE(reprule): reprule = {G_FORCE | G_AND | G_OR | G_XOR}
+	sets the current replacement rule for all other drawing (except for
+	G_ImagePut, which specifies its own replacement rule). */
+
+/**** G_LINETYPE(linetype): linetype = a 16-bit image that is repeated while
+	drawing lines and G_OUTLINE'd rectangles.  Bits that are 1 cause the
+	current pen color to be plotted using the current replacement rule.
+	Bits that are 0 are not plotted and leave the display un-modified. */
+
+/**** G_FILLMASK(buffer): buffer is a far pointer to an 8-byte array which
+	specifies the fillmask to use when doing drawings of rectangles
+	with a fillflag of G_PATTERNFILL.  Every bit that is a 1 will
+	cause a point of the current color to be plotted.  Every bit that is
+	a 0 will cause that "point" of the display to be undisturbed. */
+/*ммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммм*/
+
+/**** G_LORGA(x,y): x,y = -32768 to +32767
+	sets the logical origin (0,0) to be located at the absolute screen
+	coordinate specified by x,y. */
+
+/**** G_CLIPL(x1, y1, x2, y2): x1,y1,x2,y2 = -32768 to +32767
+	sets the current clip boundary to the rectangle whose diagonally
+	opposite corners are specified by the absolute screen coordinates
+	equal to the x1,y1 and x2,y2 offsets from the current logical origin.*/
+/*ммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммм*/
+
+/**** G_MOVE(x, y): x,y = -32768 to +32767
+	causes the logical pen to be moved to "x,y"		*/
+
+/**** G_POINT(x,y): x,y = -32768 to +32767
+	plots a point of the current pen color with the current replacement
+	rule at "x,y" unless "x,y" is outside the current clip limits	*/
+
+/**** G_POINTREAD(x,y): x,y = -32768 to +32767
+	reads the color of the point located at x,y and returns that as the
+	value of the function. */
+
+/**** G_DRAW(x,y): x,y = -32768 to +32767
+	draws a line of the current pen color with the current replacement rule
+	and the current linetype from the current pen location to "x,y";
+	only those points lying within the clip limits are actually plotted. */
+
+/**** G_RECT(x,y,fillflag): x,y = -32768 to +32767
+	fillflag = {G_OUTLINE | G_SOLIDFILL | G_PATTERNFILL}
+	draws a rectangle with diagonally opposite corners at the current pen
+	location and at "x,y", using the current pen color and replacement
+	rule.  The "type" of rectangle drawn is determined by fillflag.
+	if fillflag==G_OUTLINE, the outline of a rectangle is drawn, using the
+		current linetype.
+	if fillflag==G_SOLIDFILL, a solid, filled rectangle of the current
+		color is drawn.
+	if fillflag==G_PATTERNFILL, a pattern filled rectangle of the current
+		color is drawn, using the current fill mask.	*/
+/*ммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммм*/
+
+/**** G_IMAGEGET(x1, y1, x2, y2, buffer):  x1,y1,x2,y2 = -32768 to +32767
+	If both points x1,y1 and x2,y2 are within the current clip boundary,
+	the display image bounded by the rectangle whose diagonally opposite
+	corners are x1,y1 and x2,y2 is read into the bytes pointed to by
+	"buffer". */
+
+   NOTE: for G_ImageGet(), the required size of 'buffer' is (on Jaguar):
+
+	8 + ((x2-x1+8)/8) * (y2-y1+1) bytes          */
+
+/**** G_IMAGEPUT(x, y, buffer, reprule): x,y = -32768 to +32767
+	reprule = {G_FORCE | G_AND | G_OR | G_XOR | G_NOTFORCE | G_NOTAND |
+			G_NOTOR | G_NOTXOR}
+	if x,y and the un-specified bottom-right corner of the image are
+	within the clip boundary, the image from "buffer" is drawn on the
+	display using reprule as the replacement rule.  (For the "NOT" replace-
+	ment rules, the image is color-inverted first, then placed on the
+	display using the "rest" of the replacement rule.) */
+/*ммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммм*/
+
+/**** G_TEXT(x,y,buffer,rotflag): x,y = -32768 to +32767, rotflag = 0 or 1
+	draws the string pointed to by "buffer" on the display at the specified
+	location x,y using the current font. If rotflag = 0, it's drawn
+	horizontally, else it's rotated 90 degrees counterclockwise. */
+/*ммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммммм*/
+

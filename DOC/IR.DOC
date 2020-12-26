@@ -1,0 +1,277 @@
+
+
+		Serial & IR hardware on the HP 95LX
+
+		Copyright 1991 Hewlett-Packard Co.
+			All rights reserved.
+
+
+	The information contained in this file, although copyrighted, is
+	being released for distribution free of charge.  Hewlett-Packard
+	Co. makes no warantees as to its accuracy, completeness, or use-
+	fulness.  The user accepts all risk involved in the use of this
+	information, and Hewlett-Packard Co. offers no support and pro-
+	vides no support of this information.
+
+	This document describes the hardware involved in the HP 95LX serial
+	and Infra Red communications.  Minimal programming information is
+	supplied.  Throughout this document the term "Hopper" refers to the
+	ASIC chip in the HP 95LX which contains much of the HP 95LX's
+	functionality.
+
+	WARNING!!!! It is possible to damage an HP 95LX by improperly
+	programming the IR port (particularly by leaving the IR LED on for
+	too long).  Proceed at your own risk!
+
+
+	INTRODUCTION
+
+	The serial communication portion of the Hopper IC contains both
+	wired RS232 and IR transmit and receive capabilities.  The RS232
+	UART ports use an 8250 cell to control transmit and receive.  The
+	IRO output port can be used for two types of communication, IR
+	transmit and REDEYE.  REDEYE is used to transmit data to an
+	infrared REDEYE printer port.  The IR communications portion uses
+	both the IRO output to trnsmit and the IRI input pin to receive
+	data.  These ports are used for wireless communication using
+	infrared light.  The 8250 and the IR ports can be used
+	simultaneously to implement a wireless UART mode.
+
+
+	UART
+
+	The serial UART block is implemented using an 8250 compatible
+	macro cell.  A 1.8 MHz clock will be supplied for operation of
+	this block.  The UART is addressed from 3F8h to 3FFh.  RS232 drive
+	and receive circuits are provided off chip.
+
+	The 1.8MHz UART clock is available in operating and light sleep
+	modes.  The UART clock should be disabled to save power when the
+	UART is not in use.  This is done by setting the 8250 baud rate
+	divisor to zero.
+
+
+	IR COMMUNICATION
+
+	The IR communication block enables the Hopper IC to have wireless
+	communication using an external infrared LED and IR receive
+	circuit.  The IR communication block supports 5 separate
+	communication formats.  These formats are REDEYE, Software
+	controlled communication, Modulated communication, IR UART with
+	both single pulse and multiple pulse communication.  To control
+	the IR transmission of these formats, the hardware uses 2 control
+	registers, the IRCNT register and the IRFMAT register.  The IRFMAT
+	register at I/O register address E30Ah contains control bits that
+	choose which format is chosen for IR communication.  These bits
+	are as follows:
+
+	bit  name	description
+	____________________________________________________________________
+	0    RED	This bit when set activates REDEYE transmit mode.
+			It turns on the REDEYE transmit hardware and sets it
+			to a state where it is waiting for input from software.
+	1    MDLTE	This bit when set activates Modulated communication
+			mode.  It turns on the modulation source and allows the
+			MDLD bit in the IRCNT register to control the output
+			of a modulated waveform.
+	2    IRURT	This bit when set activates IR UART communication mode.
+			This bit disconnects the 8250 from the RS232 pins and
+			connects it to the IR communication block.  Software,
+			after setting the PMOD and MDSEL bits in this register,
+			just transmits and receives using 8250 as though it
+			were connected to the RS232 ports.
+	3    MDSEL	This bit is used to select the modulation source for
+			both IR UART mode and Modulation communication mode.
+				If this bit is 0, the 32kHz low frequency clock
+			is chosen as the modulation source.  If it is set to 1,
+			the 8250 baud rate generator 16x clock is used for the
+			modulation source to be set at 38kHz to be remote
+			control compatible.
+	4    PMOD	This bit is used in IR UART mode to select between
+			single pulse transmission and multiple pulse transmiss-
+			ion.  If it is set to 0, a single pulse of duration
+			equal to a half cycle time of the modulation source
+			will be transmitted for a 0 output bit.  If it is set
+			to 1, a pulse train of the modulation frequency will be
+			used to transmit a 0.
+	5    LBF	LED Buffer Full.  This bit is used in REDEYE mode to
+			indicate that the contents of the LBR bit have not yet
+			been transmitted and should not be written at this
+			time.  Writing to the LBR automatically sets this bit.
+			This bit is cleared when the LBR is transferred to the
+			REDEYE formatter.
+	6    ELBE	Enable Interrupt on LBR bit Empty (LBF clear).  If this
+			bit is set and LBF is clear, an IR interrupt will
+			occur.
+	7    UNREG	This bit is used to test the HPIRO pad.  Setting it
+			high disables regulation of the pad current.
+
+	The IRCNT register at I/O register address E30Bh contains bits that are
+	used to transmit a bit or waveform out on the IRO pad.  The IRCNT
+	register also allows software to receive IR data in any of the formats
+	that can be transmitted.  The contents are as follows:
+
+	bit  name	description
+	_____________________________________________________________________
+	0    LED	This bit is used to turn on the IR LED connected to the
+			HPIRO pad.  It is used for software controlled IR
+			transmission.  When it is set to a 1, the IR LED is
+			turned on.
+	1    LBR	This bit contains the half-bit to be transmitted in
+			REDEYE format.  Write a 1 to send an "on" half-bit or
+			write a 0 to send an "off" half-bit.
+	2    MDLD	This bit is used for software to output a serial wave-
+			form to be modulated by the chosen modulation source.
+			This allows compatibility with remote control format.
+	5    IRE	IR Event.  This bit is set by a logic low voltage on
+			the IRI pin.  It is set to indicate that an IR event
+			has occurred.  Once set, software must reset this bit.
+	6    EIRI	Enable IR interrupt.  An IR interrupt will occur if
+			this bit and the IRE bit are both set.
+	7    IRI	IR Input pin.  This bit allows software to monitor the
+			state of the IRI pin.  It is a read only bit.
+
+	Using the last three bits, software can receive each of the transmiss-
+	ion formats described later.  Also, if IR UART mode is set, software
+	can receive data using the 8250 the same as it would in RS232 mode.
+
+
+	REDEYE FORMAT
+
+	The REDEYE portion consists of the RED, LBF, and ELBE bits in the
+	IRFMAT register, the LBR bit in the IRCNT register, the REDEYE
+	formatter, and the IRO LED pin.  The LED pin has an open drain device
+	and thus may be driven low or tristated only.  When driven low the
+	drain current is somewhat regulated by a feedback circuit.  The LBF
+	and LBR bits form a double buffered handshake mechanism that allow
+	automatic REDEYE half-bit formatting and pacing.  An interrupt
+	mechanism is provided to indicate completion of each half-bit.
+
+	The REDEYE printer requires 15-bit frames of a precise format.  Each
+	bit of the frame consists of two half-bits.  The duration of each
+	half-bit is 14 cycles of the 32768 kHz crystal oscillator.  The half-
+	bit is considerecd to be "on" if the LED is pulsed 6-8 times (out of
+	the 14 possible) at the 32768 kHz rate.  Hopper's REDEYE port uses
+	8 pulses.  The format of a complete REDEYE frame is shown below:
+
+		Start-bits	Three half-bits "on-on-on"
+		Hamming-bits	Four pairs of half-bits.
+		Data-bits	Eight pairs of half-bits.  Each of the four
+				hamming and eight data bits are encoded with
+				two half-bits.  A "one" data or hamming bit is
+				encoded by "on-off" and a zero is encoded by
+				"off-on".
+		Stop-bits	Three half-bits "off-off-off".  This is the
+				minimum idle time required between frames.
+
+	The ELBE, RED, LBF, and LBR bits are cleared at reset.  The REDEYE port
+	also uses a formatter which is turned off whenver RED is cleared.
+	Software initiates a half-bit transmission by writing a bit to LSR.
+	This automatically sets the LBF flags in IRFMAT register and starts
+	the state machine.  The state machine transfers the bit from LBR into
+	the formatter and clears LBF.  If ELBE is set, this will cause an IR
+	interrupt indicating that it is safe to write the next half-bit to LBR.
+	The state machine then times the half-bit for 14 counts of the 32768 Hz
+	crystal oscillator.  If the bit in the formatter is a 1, the LED is
+	left off.  If after the 14 counts LBF is clear, the state machine will
+	return to its idle state of waiting for LBF.  Otherwise, it will
+	immediately transfer the next half-bit and start timing it.
+
+	When LBF is clear and ELBE is set, an IR interrupt will occur.  When
+	the state machine clears LBF, software has 13 counts of the oscillator
+	to write the next bit to LBR.  Otherwise the length of the half-bits
+	will not be correct.
+
+		Through-put:
+			32768 / 14 = 2340.6 baud (half-bits/sec)
+			32768 / 28 = 1170.3 bps (bits/sec)
+		REDEYE Frame Length
+			1.5 start + 4 Hamming + 8 data + 1.5 stop = 15 bits
+		REDEYE Through-put:
+			1170.3 / 15 = 78.02 cps
+
+
+	SOFTWARE CONTROLLED MODE
+
+	The LED bit in IRCNT register is provided for software generated IR
+	formats.  This bit is OR-ed with the output of the REDEYE formatter,
+	and the other IR format outputs.  Therefore, two IR formats may not be
+	used simultaneously.
+
+	Due to LED current limitations, the LED output driver duty cycle must
+	be limited to a time average of 29%.  The duty cycle is automatically
+	limited to 1/2 x 8/14 or 28.6% by the REDEYE formatter.  The format of
+	a full REDEYE frame yields a duty-cycle of only 14.3%.  If a different
+	format is used (by using the LED bit) software must limit the duty-
+	cycle.
+
+
+	MODULATED MODE
+
+	The MDLD bit in the IRCNT register can be used by software to output
+	any custom modulated waveform desired.  To output a waveform, software
+	must first set the MDLTE bit in the IRFMAT register and choose the
+	modulation source using the MDSEL bit.  If the 8250 baud rate 16x
+	clock is chosen, its frequency must be set to the desired modulation
+	frequency.  Once this has been accomplished, software can set and
+	clear the MDLD bit as desired to emulate the envelope of the output
+	waveform.  Whenever MDLD is 1, pulses will be output of a 50% duty
+	cycle for the given modulation source.  As before, care must be taken
+	not to exceed the 29% communication duty cycle.
+
+
+	IR UART MODES
+
+	The 8250 may be used for half duplex IR communication of limited baud
+	rate.  To use this mode the IRURT bit must be set in the IRFMAT
+	register.  When this bit is set, the 8250 is disconnected from the
+	RS232 ports and connected to the IR communication block.  When using
+	this mode, software must first choose the transmission format.  The
+	two possible formats are single pulse mode and multiple pulse mode.  If
+	the PMOD bit is 0, single pulse mode is chosen.  In this mode, a single
+	pulse of one half cycle of the modulation source is transmitted for a
+	0.  In multiple pulse mode, a train of pulses of the modulation source
+	is transmitted for a 0.  In both modes, a 1 is transmitted as no
+	pulses.  As in Modulated mode, the modulation source again must be
+	chosen.  If the baud rate of 2400 baud is chosen, choosing the 8250
+	16x clock will give you a modulation rate of 38kHz.
+
+	After this is set up, software can use the 8250 to communicate as
+	though it were still connected to the RS232 ports.
+
+
+	MISCELLANEOUS
+
+	The IR input interrupt is tied to IRQ5 of the 8259 PIC.
+
+	Bit 5 (of 0-7) of I/O address E301h is the IR circuit interrupt/wakeup
+	enable.  This is a R/W register.  Modify bit 5 to 1 to enable the
+	IR to interrupt.  When IR is used in UART mode, IR interrupt is not
+	used, as everything appears to be coming in through the UART.
+
+
+	E30Ah  R/W	IR Format Register (IRFMAT)
+
+		bit 7	=1 disables IR pad current regulation
+		bit 6	=1 enable LED buffer empty interrupt
+		bit 5	=1 LED buffer full (read only)
+		bit 4	=0 single pulse transmission mode
+			=1 multiple pulse transmission mode
+		bit 3	=0 modulate using 32.768KHz
+			=1 modulate using baud rate generator
+		bit 2	=1 IR UART communication mode
+		bit 1	=1 modulated communication mode
+		bit 0	=1 REDEYE transmit mode
+
+	E30Bh  R/W	IR Transmit / Receive Register
+
+		bit 7	   state of the IRI pin (read only)
+		bit 6	=1 enable IR interrupt on IRI = 1
+		bit 5	=1 IR event has occurred, must be cleared by software
+		bit 4	unused
+		bit 3	unused
+		bit 2	=1 gate output when in modulated communication mode
+		bit 1	=0 transmit "off" half-bit in REDEYE format
+			=1 transmit "on" half-bit in REDEYE format
+		bit 0	=1 turn on LED driver, used for software controlled
+				transmissions.

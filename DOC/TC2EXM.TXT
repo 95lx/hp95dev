@@ -1,0 +1,109 @@
+***********************************************************************
+Using Borland C to create .EXM files for the HP95LX
+***********************************************************************
+
+Yes, believe it or not, you can use Borland tools to create System
+Manager compliant applications for the 95LX!  Although this has been
+tested only with Turbo C++ and Borland C++, it should work for the whole
+Turbo C family.  The two basic problems to work around are the startup
+code and the E2M program.
+
+(NOTE: TKERNEL is a PC TSR that provides the SysMgr services on the PC,
+  in a non-task-swapping environment, allowing you to debug your program
+  on a PC, using standard PC debuggers.  Unfortunately, this program is
+  property of Lotus Corporation, which as decided NOT to allow its
+  distribution to anyone EXCEPT for ISV's that have been accepted into
+  the supported ISV program.  However, the rest of this note (regarding
+  creating .EXM files for use on the HP 95LX, is applicable even if you
+  DON'T have access to TKERNEL.)
+
+To create programs to run under TKERNEL, you shouldn't need to do
+anything special.  Just make sure to link in CSVC.OBJ (included in the
+ISV kit and on the HP BBS) so the c_service routines are defined.  Since
+you will probably want to use the Turbo C integrated environment, MAKE
+SURE YOU INCLUDE any #defines that the Microsoft make file may jam in
+before you compile.  BOXES.C is an example of this: it defines TKERNEL
+from the make file for the tkernel file, but does not for the EXM file.
+If you run non-TKERNEL code under TKERNEL you will almost certainly have
+problems (eg. Divide overflow) since TKERNEL doesn't support the full
+set of System Manager functions.
+
+STEP 1
+------
+To create .EXM programs for the System Manager, it gets a little more
+complicated.  First of all, you need to trick Turbo C into leaving out
+its own startup code and including CRT0.OBJ (also included in the ISV
+kit / HP BBS).	CRT0 is just about the minimum that is needed upon
+startup so the program doesn't do all kinds of funny stuff on the 95
+that isn't supported.  To do this, go to the directory that you keep
+your CRT0.OBJ and CSVC.OBJ files (assume it is \HP95\TOOLS) , and copy
+CRT0.OBJ into a new file, C0S.OBJ.	C0S.OBJ is the file that Turbo C
+uses for small model startup code, so we're just replacing it.
+
+Now go into the integrated environment under Options/Directory/Libraries,
+and insert the directory name \HP95\TOOLS; (or whatever you use) *in
+front* of what currently lies there (so it will find our "fake" C0S
+first). Also remember to link in CSVC.OBJ as well (just add it to your
+project file). Now you should be able to compile your SysMgr app with no
+problems. (Other helpful hints on compiling:  Remember under small model
+code only, no floating point code, and don't link in the graphics
+library.)
+
+STEP 2
+------
+Step 1 will get you a .EXE, but you still need to run E2M to
+produce the .EXM file that will end up in the 95LX.  The E2M program
+relies on the .MAP file to deduce the data/code segment dividing point.
+If you don't already have it set, go into Options/Linker/Mapfile, and
+set it to Segments (if you have more map info in the file, that's okay,
+but Segments is needed at least).
+
+Unfortunately for us, the output of Turbo Map files is not exactly
+compatible with the Microsoft format, so either you need to 1) Use the
+old E2M and massage the format to what is needed, or 2) write a small
+program that will do the massaging for you.
+
+Here's how to do it manually:  load the .MAP file into the text editor
+of your choice.  Right below the Segment list, you need to insert a couple of
+lines of text that will give the DGROUP orgin (ie. beginning of all the data).
+The text must be exact--even spaces count.	Type in this:
+ Orgin   Group
+ xxxx:0  DGROUP
+where xxxx is the first four digits in the Start column of the Segment
+titled _DATA.  As an example, this is the .MAP file produces for BOXES,
+after we have modified it.
+----------------------------
+
+ Start  Stop   Length Name               Class
+
+ 00000H 01D70H 01D71H _TEXT              CODE
+ 01D80H 024D1H 00752H _DATA              DATA
+ 024E0H 02CDFH 00800H STACK              STACK
+ 02CE0H 033E9H 0070AH _BSS               BSS
+
+ Origin   Group
+ 01D8:0   DGROUP
+
+----------------------------
+We looked up the segment named _DATA, and took the 01D8 (segment value)
+to put in this new information.  With this small modification to the .MAP
+file, the E2M program will convert your Turbo C .EXE without a snag.
+In theory, it shouldn't be too hard to whip up a program that adds this
+little bit of tag information to your map file, and just remember to run
+this before you run E2M.  Since the rest of the file beyond the "Origin"
+stuff isn't used by E2M, and since the segment info is not likely to change
+for a SysMgr app, you could cheat.  Your massager program could seek to
+the right position in the .MAP file to read out the segment (01D8), and
+seek past it to write this new little block (although it wouldn't be
+that much more work to read through the file and do a little parsing to
+find the _DATA line).
+
+I would strongly suggest trying this out on a program that you know runs
+properly under the System Manager first before you start trying untested
+programs under TKERNEL or the 95LX.
+
+For those of us who would much rather use Borland tools (present company
+included), this fix ought to make System Manager programming a little more
+palatable.
+
+

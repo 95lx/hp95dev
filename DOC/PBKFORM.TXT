@@ -1,0 +1,56 @@
+HP 95LX Phone Book File Format
+
+The HP 95LX Phone Book file is structured as a file identification 
+record, followed by a variable number of phone book data records, 
+and terminated by an end of file record.  Each data record contains
+the information for one phone book entry.
+
+The format of these phone book records is described below.  In the
+descriptions, the type <int> refers to a two byte integer stored least 
+significant byte first, the type <char> refers to a one byte integer, 
+and the type <ASCII> refers to a string of ASCII characters.
+
+HP 95LX Phone Book File Identification Record:
+
+Byte Offset      Name            Type     Contents
+
+0                ProductCode     int      -2 (FEh, FFh)
+2                ReleaseNum      int      1 (01h, 00h)
+4                FileType        char     3 (03h)   
+
+
+HP 95LX Phone Book Data Record:
+
+Byte Offset      Name            Type     Contents
+
+0                RecordType      char     1 (01h)
+1                RecordLength    int      Number of bytes in remainder
+                                          of this data record, see note
+                                          below.
+3                NameLength      char     Length of name text in bytes.
+4                NumberLength    char     Length on number text in bytes.
+5                AddressLength   int      Length of address text in bytes.
+7                NameText        ASCII    Name text, 30 characters maximum.
+7+NameLength     NumberText      ASCII    Number text, 30 characters maximum.
+7+NameLength+
+  NumberLength   AddressText     ASCII    Address text where the null 
+                                          character is used as the line 
+                                          terminator.  Addresses are limited
+                                          to a maximum of 8 lines of 39
+                                          characters per line (not counting
+                                          the line terminator).
+
+HP 95LX Phone Book End of File Record:
+
+Byte Offset      Name            Type     Contents
+
+0                RecordType     char      2 (02h)
+1                RecordLength   int       0 (00h, 00h)
+
+
+
+Note: Files created by the Phone Book application may contain 
+some padding following the last field of some data records.  Hence,
+the RecordLength field must be used to determine the start of the
+next record.  Phone book files created by other programs need not
+have any padding.

@@ -1,0 +1,38 @@
+; Module m_error.mac  Version 1.1  Date 07/24/91  Time 15:06:13 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+TWerrBadName	equ	200		; invalid file/path name
+TWerrSysDir	equ	201		; can't find TradeWind system dir
+TWerrAlarm	equ	202		; too many alarms set
+TWerrFull	equ	203		; disk full
+TWerrPrint	equ	204		; print queuing error
+TWerrNetwork	equ	205		; network error
+TWerrPhysical	equ	206		; physical I/O error
+TWerrInternal	equ	207		; internal software error
+TWerrNoFile	equ	208		; file not found
+TWerrNoPath	equ	209		; path not found
+TWerrTooMany	equ	210		; too many open files
+TWerrDenied	equ	211		; access denied
+TWerrCurDir	equ	212		; attempt to delete current dir
+TWerrNotSame	equ	213		; not same device
+TWerrWriteProt	equ	214		; device is write-protected
+TWerrNotReady	equ	215		; device not ready
+TWerrNoPaper	equ	216		; printer out of paper
+TWerrFileExists	equ	217		; file exists
+TWerrDirEntry	equ	218		; cannot make directory entry
+TWerrCritError	equ	219		; Critical error - failure
+TWerrTooManyRed	equ	220		; too many redirections
+TWerrDupRed	equ	221		; duplicate redirection
+TWerrNoMemory	equ	222		; out of memory
+TWerrDrivLoad	equ	223		; Error loading driver
+TWerrDrivVers	equ	224		; Bad version of driver
+TWerrSwapWrite	equ	225		; Error swapping to disk
+TWerrSwapRead	equ	226		; Error swapping from disk
+TWMulApps	equ	513		; more than 1 app open for spawn
+

@@ -1,0 +1,119 @@
+; Module settings.mac  Version 1.1  Date 06/19/91  Time 17:41:08 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+;----------------------------------------------------------------------------
+; See SETTINGS.H for more details on these fields and possible values.
+;----------------------------------------------------------------------------
+
+VOLLEVOFF	equ 00h
+VOLLEV0 	equ 01h
+VOLLEV1 	equ 02h
+VOLLEV2 	equ 03h
+VOLLEV3 	equ 04h
+
+CONTLEV0	equ 00h
+CONTLEV15	equ 0fh
+
+DATEFOR1	equ 00h
+DATEFOR2	equ 01h
+DATEFOR3	equ 02h
+DATEFOR4a	equ 03h
+DATEFOR4b	equ 04h
+DATEFOR4c	equ 05h
+DATEFOR4d	equ 06h
+DATEFOR5a	equ 07h
+DATEFOR5b	equ 08h
+DATEFOR5c	equ 09h
+DATEFOR5d	equ 0ah
+
+WEEKSTARTSUN	equ 00h
+WEEKSTARTMON	equ 01h
+
+TIMEFOR1	equ 00h
+TIMEFOR2	equ 01h
+TIMEFOR3a	equ 02h
+TIMEFOR3b	equ 03h
+TIMEFOR3c	equ 04h
+TIMEFOR3d	equ 05h
+TIMEFOR4a	equ 06h
+TIMEFOR4b	equ 07h
+TIMEFOR4c	equ 08h
+TIMEFOR4d	equ 09h
+
+PUNCFORA	equ 00h
+PUNCFORB	equ 01h
+PUNCFORC	equ 02h
+PUNCFORD	equ 03h
+PUNCFORE	equ 04h
+PUNCFORF	equ 05h
+PUNCFORG	equ 06h
+PUNCFORH	equ 07h
+
+CDPG850		equ 01h
+CDPG437		equ 02h
+
+LETTERSFIRST	equ 00h
+NUMBERSFIRST	equ 01h
+
+INTERFCOM1	equ 00h
+INTERFCOM2	equ 01h
+INTERFINFR	equ 02h
+INTERFLPT1	equ 03h
+
+MAX_MACRO_LEN	equ	256
+
+
+; Settings Structure
+;
+SETTINGS struc
+	stngCountry	dw   1 dup (?)	;power save enabled/disabled
+	stngVolume	dw   1 dup (?)	;speaker volume level 0ffh for off and 0-3
+	stngContrast	dw   1 dup (?)	;contrast level 1-5
+	stngWeekStart	dw   1 dup (?)	;week starts SUNDAY or Monday
+	stngPunctuation	dw   1 dup (?)	;Punctuation format
+	stngLanguage	dw   1 dup (?)	;language in use
+	stngDateFormat	dw   1 dup (?)	;current date format
+	stngTimeFormat	dw   1 dup (?)	;current time format
+	stngCollateSeq	dw   1 dup (?)	;collating sequence
+
+	stngPicFile	db  80 dup (?)	;picture file name
+	stngName_Buff	db  30 dup (?)	;name string
+	stngTitle_Buff	db  30 dup (?)	;title string
+	stngCompany_Buff db 28 dup (?)	;company string
+	stngLanguageCount dw 1 dup(?)	;how many resource sets available?
+	stngLanguagesAvail dw 6 dup(?)	;what are their codes
+	stngLanguageMenu db 66 dup (?)	;menu of languages
+	stngDateSep 	db   2 dup (?) ;date separators  can be /-.
+	stngTimeSep 	db   2 dup (?) ;time separators can be :., or h (for hms)
+	stngDateOrder	db   1 dup (?)
+	stngTime24	db   1 dup (?)
+	stngCurrency	db  16 dup (?)
+	stngCurrencyFix dw   1 dup (?)
+	stngKeyb	dw   1 dup (?)
+	stngPrBaud	dw   1 dup (?)
+	stngPrDriver	dw   1 dup (?)	
+	stngPrInterface	dw   1 dup (?)	
+	stngSystemRupt	dw   1 dup (?)	; sysmgr interrupt number, 60 default
+	stngCodePage	dw   1 dup (?)	; for PC based systems 437 or 850
+	stngExitKeyCode	dw   1 dup (?)	; for PC based - active exit key
+	stngMenuKeyCode	dw   1 dup (?)	; for PC based - active menu key
+	stngCharKeyCode	dw   1 dup (?)	; for PC based - active CHAR key
+	stngAlarm	dw   6 dup (?)
+SETTINGS ends
+
+
+
+
+
+MACROHD STRUC
+	macFK		db	1 dup (?)
+	macSize		db	1 dup (?)
+	macCommentStr	db	38 dup (?)
+	macBody		dw	MAX_MACRO_LEN dup (?)
+MACROHD ENDS

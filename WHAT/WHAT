@@ -1,0 +1,8 @@
+what.obj:	what.asm
+		MASM /Mx what;
+
+what.exe:	what.obj
+		LINK /M what;
+
+what.exm:	what.exe
+		E2M what

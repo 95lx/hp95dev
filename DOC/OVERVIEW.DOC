@@ -1,0 +1,359 @@
+******************************************************************************
+
+		===== Brief HP 95LX Overview =====
+
+The HP 95LX is very PC compatible except in areas which have been customized
+to obtain its small size or to support large amounts of memory, particularly
+in the following areas:
+
+DISPLAY -- The physical display is 40 characters by 16 lines i text mode.  This
+is a window into an MDA standard 80 character by 25 line display RAM. There is
+provision for windowing the physical display around the larger display.  Also
+included is a non-standard graphics mode which has pixel dimensions of 240
+columns by 128 rows.
+
+CHARACTER FONT -- The font is stored in ROM.  Codepage 850 was used since it
+contains necessary international characters needed for product localization.
+The standard PC codepage is 437 which contains some additional line drawing
+characters and some other differences in the upper 128 characters.
+
+KEYBOARD -- There are some differences, additions, and deletions from a stand-
+ard PC keyboard.
+
+MEMORY MAPPING -- The HP 95LX contains 512K of RAM and 1M of ROM, as well as
+up to 2M of plug-in card memory space.  Much of the ROM and plug-in card
+memory space is accessed by mapping it into banks C000, D000, and E000 of the
+CPU address space, using non-PC standard mapping calls.
+
+SYSTEM MANAGER -- The SysMgr is a COMMAND.COM replacement, which implements the
+task-swapping used in the HP 95LX, as well as supplying a large number of
+function calls that SysMgr compliant applications must use in order to avoid
+resource conflicts and/or to reduce the size of the application.
+
+DOS -- The HP 95LX uses DOS 3.22, which is very similar to DOS 3.20, but which
+executes directly out of ROM, thus freeing valuable RAM.
+
+******************************************************************************
+
+		===== Development Tools ======
+
+The HP 95LX SysMgr requires that executable programs follow a particular
+structure.  All HP and Lotus development was done using Microsoft C and/or
+Microsoft MASM.  Other languages may work, but you'll be blazing your own
+trail.  Once an .EXE file has been generated using these tools (and following
+certain guidelines), the E2M.EXE tool is used to transform the .EXE file into
+a .EXM file, which is what the SysMgr requires.
+
+TSRGRAPH is a PC TSR that can be used for early phase development to run
+graphics based applications on a PC.  It provides HP 95LX compatible graphics
+mode and all the low-level graphics routines that are supported in the HP 95LX.
+Successive executions of TSRGRAPH alternate between installing and de-install-
+ing the TSR.
+
+******************************************************************************
+
+		===== Structure of an .EXM file =====
+
+The special C-language program startup situations for SysMgr compliant applic-
+ations are:
+
+	1) applications must be linked with a special version of the C-language
+	startup code, crt0.obj.  This version is needed because the SysMgr
+	launch mechanism has already performed the tasks performed by the
+	normal C-language startup code.
+	2) command line and environment variables (argc, argv, and envp) are
+	not available.
+
+Add-in SysMgr compliant applications must be small memory model programs, less
+than 64K of code and less than 64K of preallocated data (including the stack).
+Additional data space, up to available memory, can be dynamically allocated
+using the SysMgr m_alloc or m_alloc_large functions.
+
+DATA PTR CONSIDERATIONS -- The SysMgr may move an application's data space
+under certain circumstances and in particular when an application is inactive.
+If only DS relative NEAR pointers are used, then this is not a problem since
+the SysMgr will sete up DS properly prior to activating the application.  If
+FAR data pointers are used, then the application needs to fix these pointers
+each time the SysMgr moves its data segment.
+
+COMPILING/LINKING CONVENTIONS -- When compiling and linking SysMgr apps:
+	1) Applications must be compiled with the /Gs option to eliminate
+	stack checking.
+	2) There must be at least 256 bytes of application stack space avail-
+	able for SysMgr use whenever a SysMgr service is called.
+	3) Applications must link with the SysMgr services interface module,
+	CSVC.OBJ.  This module contains the c_service function that performs
+	the software interrupt to transfer control to the SysMgr services
+	jump table.
+
+If the SysMgr provides a given service, that service should be used instead of
+using a C-library function.  This ensures compatability and reduces the size of
+the application's code.  Some specific points to note are:
+	1) Keyboard input MUST be obtained only by the use of the SysMgr
+	m_event or m_nevent functions, or task swapping will NOT work.
+	2) Dynamic memory allocations MUST be done only by the use of the
+	SysMgr m_alloc or m_alloc_large functions, or by using DOS services
+	directly (preferably the SysMgr functions).  Standard C library memory
+	management functions should NOT be used.
+	3) Elementary C library rouintes such as strlen and atoi can be used.
+	4) SysMgr file I/O uses a FILE structure that is not compatible with
+	the FILE structure defined in Microsoft C STDIO.H.  Use care with
+	including STDIO.H and, in particular, don't include both FILEIO.H and
+	STDIO.H in the same module.
+	5) The standard C library startup code is NOT used with SysMgr compli-
+	ant apps.  This may affect the use of some types of C library functions.
+
+Avoid initializing data if at all possible.  Initialized data takes up space
+in the .EXE/.EXM file, whereas un-initialized data takes up no space in the
+.EXE/.EXM file and is allocated/zeroed automatically by the SysMgr at startup
+time.
+
+APPLICATION INITIALIZATION and TERMINATION --- The SysMgr implements non-pre-
+emptive task swapping for SysMgr compliant applications.  Hence, compliant
+applications are event driven and must make timely calls to the m_event or
+m_nevent function to receive keyboard input and other events.
+
+The SysMgr reports key strokes for nomal keys, but reports a deactivate event
+when another application's hot key is pressed.  In response to a deactivate
+event, the application is expected to do any necessary housekeeping to prepare
+for suspension and then request the next event.  The next event, which will be
+an activate event, will not be returned until this application is activated
+again.  Activation can occur for several reasons; for example, the applications
+hot key is pressed, all subsequently activated applications are quit, or the
+application has been selected for termination from the low memory close out
+menu.
+
+In response to an activate event, the application must redraw its screen.  For
+RAM efficiency, it is recommended that applications have a means of redisplay-
+ing the screen from primary data, rather than by saving a copy of display
+memory.
+
+The SysMgr may also return a termination event at any time.  The application
+is required to respond to this as if the user issued a quit command, with
+any user-interface variations needed to make clear what is happening.  For
+example, if an editor is being terminated and its buffer has been modified,
+the user should be prompted to save the file.
+
+If possible, when an application terminates, it should save its state inform-
+ation in a file.  When it is subsequently relaunched, it can inspect the file
+and reconstruct its state prior to termination.
+
+INTERRUPTIBLE PROCESSES --- An "interruptible process" within a program is one
+which the user can interrupt by pressing a key.  An example of an interruptible
+process is function plotting in the built-in calculator ap.
+
+During an interruptible process, the program must periodically check the key-
+board to see if the user ahs requested interruption.  The HP 95LX BIOS uses
+keyboard checks as an occassion to go into light sleep.  This is done as a
+power saving feature and is only done when running on batteries.  In many cases
+keyboard checks are only done when a program is otherwise idle.  In these cases
+going into light sleep does not affect performance and is an effective way to
+conserve batteries.  However, during an interruptible process, going to light
+sleep can substantially slow down the process.
+
+The BIOS provides a service (INT 15h, function 4Eh) which controls whether
+light sleep will be entered during a key test.  This function should be used to
+disable going to light sleep during an interruptible process and then to re-
+enable light sleep for power conservation reasons.  The sample application
+BOXES.C contains an example of an interruptible process.
+
+ACCESSING SYSMGR SERVICES FROM C -- Each source file containing services calls
+must include the header file interfac.h which contains macro defintions for
+each SysMgr service.  The macro expands the call to be a call to a common
+System Service request function.  In additon, the macro adds a service number
+to the argument list and casts near pointers to far pointers as appropriate.
+
+For example, the m_disp call in the source:
+
+	#include	"interfac.h"
+
+	int	row, col, style, ostyle;
+	char	*str;
+
+	.
+	.
+	.
+	m_disp(x, y, str, strlen(str), style, ostyle);
+
+expands to:
+
+	c_service(F_M_DISP, x, y, (void far *)str, strlen(str), style, ostyle);
+
+where F_M_DISP is the function code for m_disp and is defined in interfac.h.
+
+The function c_service is provided in the object module csvc.obj and converts
+the call into a software interrupt that transfers control to the SysMgr
+dispatch table.
+
+ACCESSING SYSMGR SERVICES FROM ASM --- Assembler programs access the services by
+pushing any required arguments on the stack and then using the SMCALL macro to
+"call" the service.  For example, usage of m_disp might appear as:
+
+	include	interfac.mac
+
+	...
+
+	push	dx	; ostyle (not actually used)
+	push	dx	; style
+	push	cx	; string length
+	push	ds	; string segment
+	push	si	; string offset
+	push	ax	; column
+	push	bx	; row
+
+	SMCALL F_M_DISP	; display the string
+
+	add	sp,14	; remove arguments from the stack
+
+There are three things to note in this example:
+	1) The arguments are pushed in left to right order as is done by C.
+	2) Pointers are passed as far pointers.  See interfac.h for argument
+	specifics where, in general, pointers are cast as far pointers.
+	3) The function numbers such as F_M_DISP and the SMCALL macro can be
+	found in interfac.mac.
+
+SYSTEM MANAGER AND TASK MANAGEMENT -- First, consider the case where an applic-
+ation is being selected and no applications are currently active (ie, the
+owner-information, or business card, screen is showing).
+
+When the SysMgr starts an application, it loads the application into memory,
+sets up the segment registers, and transfers control to application's entry
+point.  For built-in appliactions (that run from ROM), the load step involves
+allocating enough system RAM for the application's data and copying the intial-
+ized data from ROM to RAM.   For loading external applications, the SysMgr must
+also allocate system RAM for the application's code.  In this case, both the
+code and intialized data are read from disk into memory.
+
+Once started, an application enters an event loop where it calls the SysMgr
+m_event or m_nevent function to get the next key stroke or other event.  Once
+started, an application will be called open until it calls the SysMgr m_fini
+function, which is normally when the user quits the application.  An open ap-
+plication will be called active if it has control and inactive if another ap-
+plication has control.
+
+Now, consider the case where an application is being selected but a different
+application is currently active.  In this case, the SysMgr not only needs to
+load and launch the new application, but also needs to deactivate the previous
+application.
+
+When switching to a new application, the SysMgr sends a deactivate event to the
+current appliaction, which changes its status from active to inactive, and then
+starts the new one.  If there is insufficient memory to load the new applicat-
+ion, the SysMgr displays a low memory close down screen and gives the user the
+chance to terminate one of the open applications.  Once there is sufficient
+memory, the new application is loaded and launched, while the data for the
+previously open applications remain in memory.
+
+Special handling of the the code space is required for external applications.
+Only one external application's code is kept in memory at any one time, so if
+the new application is an external application, and another external application
+is opened, this code space (after possible expansion) is reused for the code of
+the new external ap.
+
+NOTE: Whenever there is an external application open, the external application
+code space is NOT reduced in size because there must always be enough code
+space to restart any of the open (but inactive) external applications.
+
+MEMORY MANAGEMENT --- The SysMgr is repsonsible for efficiently managing
+memory for SysMgr compliant applications.
+
+For example, to prevent memory fragmentation, an inactive application's data
+space may be moved in memory as other applications are launched and exited.
+This means that applications should not save the DS value in memory unless the
+application is prepared to modify the DS value in case its data segment has been
+moved.
+
+As another example, the code space is overlaid for all external applications.
+This means that the code for an inactive external application will not be in
+memory if any other external application has been subsequently activated.  This
+implies that variable data should not be stored in the code segment.
+
+TSRs, INTERRUPT VECTORS, and THE SYSTEM MANAGER --- There are two ways that DOS
+can be accessed on the HP 95LX.  One way is to change the DOS shell to
+COMMAND.COM by creating a CONFIG.SYS file with the line SHELL=COMMAND /P.  The
+other way is to run a DOS command from the Filer or from the DOS command line
+accessed via the Filer's System function.  Thus, there are two environments in
+which to run TSRs.
+
+Running TSRs from the Filer has two drawbacks.  One is memory fragmentation
+due to the hole left by COMMAND's data when the TSR terminates.  This memory
+may or may not be usable by the SysMgr.  A more important drawback is that the
+SysMgr may not be able to run an external application after a TSR has been
+installed from the Filer.  This is because the SysMgr needs to expand a memory
+block in order to load the external application's code and the TSR may block
+this expansion.
+
+Consequently, we generally recommend that TSRs be run BEFORE starting the
+SysMgr.  The TSRs can be started from an AUTOEXEC.BAT file which, if terminated
+with the $SYSMGR command, will start the SysMgr after the TSR loads.  This
+technique permanently ties up memory for COMMAND's data;  but, since this is
+below the SysMgr, it does not cause memory fragmentation.
+
+TSRs usually make use of some interrupt vectors.  The SysMgr takes over some
+interrupt vectors without "chaining" onto the previous owner.  This means that
+a TSR that is loaded first may not get control when it expects to if the SysMgr
+has taken the TSR's interrupt.  Thus, it is necessary to know which interrupts
+are used by the SysMgr.  The interrupt taken by the SysMgr are:
+
+	INT 05h	Print Screen
+	INT 06h	HP 95LX specific BIOS service used to signal entering and
+		leaving sleep modes.
+	INT 0Ch	COM1 serial port interrupts
+	INT 1Bh	CTRL-Break interrupt.  The SysMgr saves the orignal value and
+		restores it before accessing DOS from the Filer.
+	INT 4Ah	User alarm.  Called by BIOS when real-time clock alarm goes off.
+	INT 60h	Used for calls to SysMgr services.
+	INT 61h	Used by the SysMgr to load its DS register.
+
+In addition, the SysMgr chains into the INT 1Ch, the user timer tick interrupt.
+Finally, INT 62h is used by the HP 95LX's Calculator application.
+
+HEADER FILES --- Header files are used for macro and structure definitions.
+All functional areas require the inclusion of interfac.h for C modules or
+interfac.mac for assembler modules.
+
+Some functional areas also require the inclusion of additional header files:
+
+	Service class	C Program	Assembler Program
+	-------------	------------	-----------------
+	Event		event.h		event.mac
+	Menu		menu.h		menu.mac
+	File Menu	fmenu.h		fmenu.mac
+	Editing		edit.h		smedit.mac
+	Clipboard	cbcodes.h	cbcodes.mac
+	File I/O	fileio.h	filio.mac
+	Date/Time	smtime.h	smtime.mac
+	Configuration	settings.h	settings.mac
+	Communication	comio.h		comio.mac
+	Bridge		bridge.h	bridge.mac
+	Misc		m_error.h	m_error.mac
+
+A NOTE ON C-LANGUAGE FUNCTION PROTOTYPES --- The header files do not contain
+function prototypes for the services.  Instead, interfac.h contains macro
+definitions that expand SysMgr service calls into calls to a single service
+dispatch routine.
+
+Hence, if a service is accidentally called with the incorrect number of
+parameters, it will not match the macro and the compiler will issue a warning
+about too few or not enough actual parameters for the macro.
+
+However, if a service is accidentally called with an incorrect argument type
+but with the correct number of parameters, this may not be caught by the comp-
+iler due to the lack of a function prototype.
+
+The following functions in interfac.h are NOT USABLE BY APPLICATIONS:
+
+	com_timer_addr		com_timer_count_addr
+	InitCom			m_appcount
+	m_app_name		m_common_open
+	m_day_trigger		m_disable_macros
+	m_enable_macros		m_fall_printer
+	m_get_settings		m_ram_iv_info
+	m_reboot		m_set_daterule
+	m_set_settings		m_spawnarg
+	m_sys_rsrc_addr
+
+All pointers in SysMgr service calls are FAR pointers.  However, the service
+macros contain casts of pointer arguments to far pointers.  Consequently, near
+pointers can be used for data in cases where compiler can supply the segment
+value due to the cast.

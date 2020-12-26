@@ -1,0 +1,60 @@
+; Module smedit.mac  Version 1.1  Date 06/19/91  Time 17:41:21 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+;
+;  System Manager multi-line edit interface structure
+;
+;
+MDITDATA    struc
+mdit_buffer       dd ?           ; address of edit buffer
+mdit_b_len        dw ?           ; length of edit buffer
+mdit_cursor_pos   dw ?           ; current cursor position
+mdit_row          dw ?           ; starting row
+mdit_col          dw ?           ; starting column
+mdit_n_rows       dw ?           ; number of rows (logical)
+mdit_n_cols       dw ?           ; number of columns (both log and screen)
+mdit_y_off	  dw ?		 ; line at top of window
+mdit_y_disprows	  dw ?		 ; number of lines in window
+mdit_cursor_col   db ?           ; current cursor column
+mdit_modified     db ?           ; 1 if buffer has been changed
+mdit_xoff         db ?           ; 1st display col; for ticker fields only
+mdit_wrapflag	  db ?		 ; word wrap enable flag
+mdit_m_line	  dd ?		 ; address of line start buffer
+mdit_markon	  db ?		 ; currently marking ?
+mdit_spec_flag	  db ?		 ; special handling flag, see below
+mdit_markst	  dw ?
+mdit_markend	  dw ?
+mdit_dispcols	  dw ?		
+MDITDATA    ends
+
+
+
+MDIT_SPEC_NOTABEXP	equ	1	; treat TAB as single char,
+
+
+
+
+;
+;  System Manager edit line interface structure
+;
+;
+
+EDITDATA    struc
+edit_len          dw ?           ; current length of edit buffer
+edit_f_time       db ?           ; first time flag
+edit_spec_flag	  db ?		 ; future use
+edit_prompt_win   dw ?           ; whether this belongs to prompt window
+edit_mess_line    dd ?           ; addr. of the top line message for the prompt
+edit_mess_len     dw ?           ; message length
+edit_promt_line   dd ?           ; addr. of the 2nd line of prompt window
+edit_promt_len    dw ?           ; prompt length
+edit_buffer       db 80 dup (0)  ; edit buffer
+edit_line_array	  dw 2 dup (0)   ; line start array (1 more than # lines)
+m_edit		  db type MDITDATA dup (?)  ; mdit edit-structure
+edit_dispcols	  dw ?		; dislayable columns
+EDITDATA    ends

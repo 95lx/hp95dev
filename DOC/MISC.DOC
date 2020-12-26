@@ -1,0 +1,164 @@
+
+==============================================================================
+ SERIAL
+==============================================================================
+
+The pinout of the serial connector, when looking INTO the serial port of the
+HP 95LX, is:
+
+	SHIELD		TRANSMIT	RECEIVE		SIGNAL
+	GROUND		  DATA		 DATA		GROUND
+
+SHIELD GROUND and SIGNAL GROUND are shorted together inside the HP 95LX, so
+they're effectively the same.
+
+==============================================================================
+ THE _SYS DIRECTORY
+==============================================================================
+
+_SYS is a hidden sub-directory that mostly contains miscellaneous files of
+use to the system, but of little or no interest to the user.  There are a few
+things, however, that ARE of use.  The actual contents of this hidden directory
+will vary, as "international" versions of the HP 95LX have less room in the
+ROM due to the fact that they contain all messages and help screens in two
+languages (English and the "local" language).  However, in the US versions of
+the product, the _SYS directory contains these additional files of interest:
+
+	DEBUG.EXE	The MS-DOS DEBUG program for DOS 3.22
+	1000.PCX	A very nice alternative for the "business card"
+	TFOX.EXM	A System Manager compliant version of TigerFox
+	HB.EXM		A System Manager compliant game similar to minefield
+	SERINT.COM	A program to enable/disable serial interrupts
+
+_*_*_*_*_*_*_*_*_*_*_
+
+ DEBUG is the standard program.  If you don't know how to use it, you can find
+ out about it from almost any book about MS-DOS.
+
+_*_*_*_*_*_*_*_*_*_*_
+
+ To use 1000.PCX, go into the SETUP application, select OWNER, PICTURE-FILE,
+ then enter "C:\_SYS\1000.PCX" as the file name.  Then, quit out of SETUP, and
+ quit any other applications that you have running, until you reach the
+ "business card".
+
+_*_*_*_*_*_*_*_*_*_*_
+
+ TFOX.EXM and HB.EXM are System Manager compliant games.  This means that they
+ will act just like the other "blue key" applications, allowing you to switch
+ between them and the other applications at the press of a key without having
+ to quit them.  (TF.COM is in the root of drive C: and is documented in an
+ appendix of the manual.  It is a non-System Manager compliant version of the
+ game and can ONLY be run when all other applications are closed, except for
+ the filer).  To use TFOX.EXM and/or HB.EXM, use the MEMO to create a file
+ called "C:\_DAT\APNAME.LST".  In that file, place this text:
+
+   C:\_SYS\TFOX.EXM,1400,TigerFox
+   C:\_SYS\HB.EXM,2300,Hearts & Bones
+
+ After creating this file, reboot the machine by pressing CTL-ALT-DEL (be sure
+ that you've closed any data files that any applications might be working
+ with before re-booting, as any unsaved changes would be lost).
+
+ Now, after re-booting, ALT-T and ALT-H are the "hot" keys for accessing these
+ two programs.  The entries in the APNAME.LST file consist of three components:
+   1) The pathname to the program.
+   2) The scancode for the key to which you wish it to be mapped.
+   3) The name that you want to appear in the low-memory "close-out" box,
+        if you should run out of memory and need to close an application.
+
+ The HP 95LX supports a maximum of eight entries in the APNAME.LST file.  Also,
+ the drive letter (the first character on each line) should be capitalized (it
+ may work most of the time with lower case, but this is not guaranteed in all
+ situations).
+
+ Drive A: can also have an APNAME.LST file (in the root directory) for .EXM
+ files on drive A:.  The format is exactly the same.  Of course, the pathnames
+ in the drive A: APNAME.LST should start with A: instead of C:.  Do NOT put
+ entries in the APNAME.LST file on drive A: that specify a drive letter other
+ than drive A:, and do NOT put entries in the drive C: APNAME.LST file that
+ specify a drive letter other than drive C:.  If you do this, you won't get
+ an error message, but things probably won't work very well either.
+
+_*_*_*_*_*_*_*_*_*_*_
+
+ SERINT.COM is a small program that simply allows you to disable/enable the
+ interrupts from the serial port.  On a normal PC, the serial port interrupts
+ are disabled by default, whereas on the HP 95LX, they're ENABLED by default.
+ If this causes problems when running programs which don't come with the
+ HP 95LX you can use SERINT to correct the problem before running those
+ programs.  (Problems are only likely to occur with programs which use the
+ serial port by making calls to the BIOS INT 14 code, so 99.5% of people will
+ have no need for the program.)
+
+ If you run SERINT with no arguments it will display a VERY brief syntax
+ description.  There's basically two options:
+	SERINT /D	disables the UART from interrupting
+	SERINT /E	enables the UART to interrupt
+
+==============================================================================
+ TSR's, THE SYSTEM MANAGER, and EVERYTHING
+==============================================================================
+
+TSR's present a special problem for the the HP 95LX.  Under many circumstances
+you can run TSR's from the Filer or from the DOS command line, just like any
+other DOS program.  However, this can cause a couple of problems.  One is
+memory fragmentation if the TSR is run from the DOS command line.  This is
+because the System Manager has run a copy of COMMAND.COM which has allocated
+some data space in the low end of memory.  Then, the TSR gets run which
+permanently allocates a block of memory above that.  Now, when you exit
+COMMAND.COM and go back to the System Manager, you have a small "hole" in
+memory where COMMAND's data was.  This "hole" may or may not be useable by
+the System Manager.  The only side effect of this, in terms of memory usage,
+is that in some extreme cases, you might run out of memory when you otherwise
+wouldn't have.
+
+A more important drawback of running TSR's from the Filer or from the DOS
+command prompt is that they then block the System Manager's ability to run
+RAM-based System Manager-compliant applications (those programs that get
+assigned to a "hot key" via the APNAME.LST file).  This is not so good.
+
+An alternate way to run the TSR is this:  create a CONFIG.SYS file with the
+line
+		SHELL=COMMAND /P
+and an AUTOEXEC.BAT file that runs the TSR and then the System Manager, some-
+thing like:
+		TSRNAME
+		$SYSMGR
+This will cause the TSR to get loaded into memory first, BEFORE the System
+Manager, and thus won't screw up the System Manager's memory management.
+
+However, there's drawbacks to this, also.  The System Manager takes over some
+interrupt vectors without "chaining" on to the previous owner.  This means
+that if your TSR takes a vector that the System Manager also takes, your TSR
+may not get control back when it expects to.
+
+The System Manager takes these vectors:
+
+	INT  5	Print Screen
+	INT  6	Internal BIOS hook involving entering & leaving sleep modes
+		 This is intended for internal uses only, and should not be
+		 mucked with.
+	INT  C	(IRQ 4) Serial port interrupts
+	INT 1B	CTRL-BREAK (the old value is saved, and then restored before
+		 shelling to DOS COMMAND)
+	INT 1C	18.2 Hz timer tick application hook.  The System Manager
+		 "chains" this vector, so previous owners will still get
+		 control.
+	INT 4A	User Alarm - BIOS calls this when an alarm goes off. Proper
+		 functioning of this interrupt is integral to the Appointment
+		 Book alarm system, so it should not be mucked with.
+	INT 60	Calls to the System Manager
+	INT 61	Used by the System Manager to load its DS register
+
+==============================================================================
+HP 95LX DISPLAY REFRESH RATE
+==============================================================================
+
+The frame rate (the number of times the LCD is scanned, or refreshed per
+second) for the HP 95LX changes, depending upon whether or not the AC adapter
+is plugged in.  When the AC adapter is plugged in, the LCD refresh rate is
+73.14 Hz.  When the AC adapter is not plugged in (ie, running off of batteries)
+the refresh rate is 56.8 Hz.
+
+==============================================================================

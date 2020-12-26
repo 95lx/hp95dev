@@ -1,0 +1,379 @@
+; Module interfac.mac  Version 1.3  Date 07/30/91  Time 15:36:25 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+;/**************************************************************
+;  Services that are implemented in C in the System Manager
+;  are accessed through a common interface routine:
+;
+;	c_service()
+;
+;  Each of the applicable services has a macro implemented here.
+;  In addition to the documented arguments for the services,
+;  the macros makes the call to service with an argument 
+;  identifying the function.
+;
+;
+;  The extra constant is the service identifier.  This should be
+;  a word sized value, with the high byte equaling the service 
+;  class, and the low byte  equal to service number.  These 
+;  values must match the values in the general services 
+;  dispatcher (SERVICES.ASM) and the class specific dispatchers.  
+;
+;  Note that ALL
+;  pointer arguments are to be FAR (4 bytes) when passed to the
+;  System Manager, despite what the specification may currently
+;  say.	
+;
+;
+;  Finally, the macro itself makes a call to c_service(), with
+;  the above constants used as the first argument.  Following
+;  that are the actual arguments as supplied.  IMPORTANT NOTE: 
+;  all pointer arguments should be cast INSIDE THE MACRO 
+;  DEFINITION to far.  This is the simplest way to make sure
+;  that near pointers inside applications get expanded to the
+;  proper size.
+;
+;
+;
+; **************************************************************
+;
+;  All other functions that may be called by applications should
+;  have function prototypes in this file.  Again, ALL pointers
+;  will be FAR.  By using the prototype, the compiler will push	
+;  the segment value onto the stack, even though the parameter
+;  actually supplied may be a near pointer. 
+;
+;  Each of these functions must have assembly language wrappers
+;  written to make the SERVICES calls.
+;
+;
+; **************************************************************/
+;
+;/* assign constants for the service class numbers */
+;/* SC_MAXNUM is the maximum class number allowed */
+;
+
+SC_Fp		equ	0
+SC_EVENT	equ	1
+SC_MENU 	equ	2
+SC_SCREEN	equ	3
+SC_EDIT 	equ	4
+SC_FILE 	equ	5
+SC_PM		equ	6
+SC_CB		equ	7
+SC_SOUND	equ	8
+SC_MM		equ	9
+SC_BG		equ	10
+SC_DTIME	equ	11
+SC_PRINT	equ	12
+SC_CONFIG	equ	13
+SC_COMM 	equ	14
+SC_MISC 	equ	15
+SC_VIDVIR	equ	16
+SC_VIDPHY	equ	17
+SC_GRDISP	equ	18
+SC_KEY      	equ   	19
+SC_RSRC     	equ   	20
+SC_HELP     	equ   	21
+SC_COL      	equ   	22
+
+SC_MAXNUM	equ	22
+
+SERVICESVECTOR	equ 60h
+
+FIRST_ARG_LEN	equ	12
+
+
+SERVICES macro serclass,subfunc
+	mov di,(SC_&serclass SHL 8) OR Fun&serclass&subfunc
+	int SERVICESVECTOR
+	endm
+DataSegVector	equ	61h
+
+
+;/* SC_EVENT */
+
+F_M_EVENT	equ	(SC_EVENT * 256) + 0
+F_M_NEVENT	equ	(SC_EVENT * 256) + 1
+F_M_SH_STATUS	equ	(SC_EVENT * 256) + 2
+; (SC_EVENT * 256) + 3 is reserved
+F_M_BRIDGE_SERV	equ	(SC_EVENT * 256) + 4
+F_M_FLUSH_KB	equ	(SC_EVENT * 256) + 5
+F_M_YIELD	equ	(SC_EVENT * 256) + 6
+F_M_NO_FINI	equ	(SC_EVENT * 256) + 7
+
+
+
+;/*SC_MENU */
+
+F_MENU_SETUP	equ	(SC_MENU * 256) + 0
+F_MENU_DIS	equ	(SC_MENU * 256) + 1
+F_MENU_ON	equ	(SC_MENU * 256) + 2
+F_MENU_OFF	equ	(SC_MENU * 256) + 3
+F_MENU_KEY	equ	(SC_MENU * 256) + 4
+F_FMENU_INIT	equ	(SC_MENU * 256) + 5
+F_FMENU_DIS	equ	(SC_MENU * 256) + 6
+F_FMENU_KEY	equ	(SC_MENU * 256) + 7
+F_FMENU_OFF	equ	(SC_MENU * 256) + 8
+
+
+;/*SC_SCREEN*/
+
+F_M_DISP	equ	(SC_SCREEN * 256) + 0
+F_M_CLEAR	equ	(SC_SCREEN * 256) + 1
+F_M_SCROLL	equ	(SC_SCREEN * 256) + 2
+F_M_XCHG	equ	(SC_SCREEN * 256) + 3
+F_M_CHRATTR	equ	(SC_SCREEN * 256) + 4
+F_M_CHRRVRT	equ	(SC_SCREEN * 256) + 5
+; (SC_SCREEN * 256) + 6 is reserved
+F_M_CHRINV	equ	(SC_SCREEN * 256) + 7
+F_M_ROWS_COLS	equ	(SC_SCREEN * 256) + 8
+F_M_SETMODE	equ	(SC_SCREEN * 256) + 9
+F_M_GETMODE	equ	(SC_SCREEN * 256) +10
+F_M_SETCUR	equ	(SC_SCREEN * 256) +11
+
+;/*SC_EDIT*/
+
+F_EDIT_INIT	equ	(SC_EDIT * 256) + 0
+F_EDIT_TOP	equ	(SC_EDIT * 256) + 1
+F_EDIT_DIS	equ	(SC_EDIT * 256) + 2
+F_EDIT_KEY	equ	(SC_EDIT * 256) + 3
+F_MDIT_INI	equ	(SC_EDIT * 256) + 4
+F_MDIT_DIS	equ	(SC_EDIT * 256) + 5
+F_MDIT_KEY	equ	(SC_EDIT * 256) + 6
+F_MDIT_FIL	equ	(SC_EDIT * 256) + 7
+F_MDIT_MARK	equ	(SC_EDIT * 256) + 8
+F_MDIT_UNMARK	equ	(SC_EDIT * 256) + 9
+F_MDIT_CUTMARK	equ	(SC_EDIT * 256) + 10
+F_MDIT_INS_STR	equ	(SC_EDIT * 256) + 11
+
+;/*SC_FILE*/
+
+F_M_OPEN	equ	(SC_FILE * 256) + 0
+F_M_OPENRO	equ	(SC_FILE * 256) + 1
+F_M_CREATE	equ	(SC_FILE * 256) + 2
+F_M_FCREAT	equ	(SC_FILE * 256) + 3
+F_M_READ	equ	(SC_FILE * 256) + 4
+F_M_WRITE	equ	(SC_FILE * 256) + 5
+F_M_SEEK	equ	(SC_FILE * 256) + 6
+F_M_TELL	equ	(SC_FILE * 256) + 7
+F_M_CLOSE	equ	(SC_FILE * 256) + 8
+F_M_SETPAT	equ	(SC_FILE * 256) + 9
+F_M_MATCH	equ	(SC_FILE * 256) + 10
+F_M_IDENT	equ	(SC_FILE * 256) + 11
+F_M_DELETE	equ	(SC_FILE * 256) + 12
+F_M_RENAME	equ	(SC_FILE * 256) + 13
+F_M_GETDIR	equ	(SC_FILE * 256) + 14
+F_M_SETDIR	equ	(SC_FILE * 256) + 15
+F_M_VOLUME	equ	(SC_FILE * 256) + 16
+F_M_MKDIR	equ	(SC_FILE * 256) + 17
+F_M_RMDIR	equ	(SC_FILE * 256) + 18
+F_M_GETDRV	equ	(SC_FILE * 256) + 19
+F_M_SETDRV	equ	(SC_FILE * 256) + 20
+F_M_FDATE	equ	(SC_FILE * 256) + 21
+F_M_GET_SYSDIR	equ	(SC_FILE * 256) + 22
+F_M_GETATTR	equ	(SC_FILE * 256) + 23
+F_M_SETATTR	equ	(SC_FILE * 256) + 24
+F_M_COMMON_OPEN	equ	(SC_FILE * 256) + 25
+F_M_COPYDT	equ	(SC_FILE * 256) + 26
+F_M_GETFDT	equ	(SC_FILE * 256) + 27
+F_M_PUTFDT	equ	(SC_FILE * 256) + 28
+
+;/*SC_PM*/
+
+F_M_INIT	equ	(SC_PM * 256) + 0
+F_M_FINI	equ	(SC_PM * 256) + 1
+F_M_LOCK	equ	(SC_PM * 256) + 2
+F_M_UNLOCK	equ	(SC_PM * 256) + 3
+F_M_SPAWN	equ	(SC_PM * 256) + 4
+F_M_APPCOUNT	equ	(SC_PM * 256) + 5
+F_M_REBOOT	equ	(SC_PM * 256) + 6
+F_M_SPAWNARG	equ	(SC_PM * 256) + 7
+F_M_REG_APP_NAME equ	(SC_PM * 256) + 8
+F_M_APP_NAME 	equ	(SC_PM * 256) + 9
+
+;/*SC_CB*/
+
+F_M_OPEN_CB	equ	(SC_CB * 256) + 0
+F_M_CLOSE_CB	equ	(SC_CB * 256) + 1
+F_M_RESET_CB	equ	(SC_CB * 256) + 2
+; (SC_CB * 256) + 3 is reserved
+F_M_NEW_REP	equ	(SC_CB * 256) + 4
+F_M_FINI_REP	equ	(SC_CB * 256) + 5
+F_M_REP_NAME	equ	(SC_CB * 256) + 6
+F_M_REP_INDEX	equ	(SC_CB * 256) + 7
+F_M_CB_WRITE	equ	(SC_CB * 256) + 8
+F_M_CB_READ	equ	(SC_CB * 256) + 9
+
+;/*SC_SOUND*/
+
+F_M_BEEP	equ	(SC_SOUND * 256) + 0
+F_M_THUD	equ	(SC_SOUND * 256) + 1
+F_M_ASOUND	equ	(SC_SOUND * 256) + 2
+F_M_SOUNDOFF	equ	(SC_SOUND * 256) + 3
+
+;/*SC_MM*/
+
+F_M_RALLOC	equ	(SC_MM * 256) + 0
+; (SC_MM * 256) + 1 is reserved
+F_M_FREE	equ	(SC_MM * 256) + 2
+F_M_ALLOC_LARGE equ	(SC_MM * 256) + 3
+F_M_FREE_LARGE	equ	(SC_MM * 256) + 4 
+
+;/*SC_BG*/
+
+;/*SC_DTIME*/
+
+F_M_DTINFO	equ	(SC_DTIME * 256) + 0
+F_M_GETDTM	equ	(SC_DTIME * 256) + 1
+F_M_SETDTM	equ	(SC_DTIME * 256) + 2
+F_M_XALARM	equ	(SC_DTIME * 256) + 3
+F_M_ALARM	equ	(SC_DTIME * 256) + 4
+F_M_START_SW	equ	(SC_DTIME * 256) + 5
+F_M_GET_SW	equ	(SC_DTIME * 256) + 6
+F_M_STOP_SW	equ	(SC_DTIME * 256) + 7
+F_M_TELLTIME	equ	(SC_DTIME * 256) + 8
+F_M_GET_SETTINGS equ	(SC_DTIME * 256) + 9
+F_M_SET_SETTINGS equ	(SC_DTIME * 256) +10
+F_M_START_TIMER	equ	(SC_DTIME * 256) +11
+F_M_STOP_TIMER	equ	(SC_DTIME * 256) +12
+F_M_GET_TIMER	equ	(SC_DTIME * 256) +13
+F_M_TELL_ANYTIME equ	(SC_DTIME * 256) +14
+F_M_GET_SETTINGS_ADDR equ	(SC_DTIME * 256) + 15
+F_M_PARSE_DATE	equ	(SC_DTIME * 256) + 16
+F_M_PARSE_TIME	equ	(SC_DTIME * 256) + 17
+F_M_SET_DATERULE equ	(SC_DTIME * 256) + 18
+F_M_SET_TIMERULE equ	(SC_DTIME * 256) + 19
+F_M_POST_TIME equ	(SC_DTIME * 256) + 20
+F_M_DAY_TRIGGER equ	(SC_DTIME * 256) + 21
+
+;/*SC_PRINT*/
+
+F_M_OPEN_PRINTER equ	(SC_PRINT * 256) + 0
+F_M_CLOSE_PRINTER equ	(SC_PRINT * 256) + 1
+F_M_WRITE_PRINTER equ	(SC_PRINT * 256) + 2
+F_M_INIT_PRINTER  equ	(SC_PRINT * 256) + 3
+F_M_TRANS_PRINTER equ	(SC_PRINT * 256) + 4
+F_M_FALL_PRINTER  equ	(SC_PRINT * 256) + 5
+
+
+;/*SC_CONFIG*/
+
+
+
+;/*SC_COMM*/
+
+F_COMM_INIT	equ	(SC_COMM * 256) + 0
+F_COMM_OPEN	equ	(SC_COMM * 256) + 1
+F_COMM_CLOSE	equ	(SC_COMM * 256) + 2
+F_COMM_GETMDM	equ	(SC_COMM * 256) + 3
+F_COMM_ANSWER	equ	(SC_COMM * 256) + 4
+F_COMM_DIAL	equ	(SC_COMM * 256) + 5
+F_COMM_RESET	equ	(SC_COMM * 256) + 6
+F_COMM_HANGUP	equ	(SC_COMM * 256) + 7
+F_COMM_SNDBTS	equ	(SC_COMM * 256) + 8
+F_COMM_QRYTXQ	equ	(SC_COMM * 256) + 9
+F_COMM_QRYRXQ	equ	(SC_COMM * 256) + 10
+F_COMM_RCVBTS	equ	(SC_COMM * 256) + 11
+F_COMM_HAZCMD	equ	(SC_COMM * 256) + 12
+F_COMM_COMAND	equ	(SC_COMM * 256) + 13
+F_COMM_BREAK	equ	(SC_COMM * 256) + 14
+F_COMM_FRCXON	equ	(SC_COMM * 256) + 15
+F_COMM_FRCXOF	equ	(SC_COMM * 256) + 16
+F_COMM_SETDTR	equ	(SC_COMM * 256) + 17
+F_COMM_XMITNG	equ	(SC_COMM * 256) + 18
+F_COMM_STATUS	equ	(SC_COMM * 256) + 19
+F_COMM_SET	equ	(SC_COMM * 256) + 20
+F_COMM_GET	equ	(SC_COMM * 256) + 21
+F_COMM_CNFGUR	equ	(SC_COMM * 256) + 22
+F_COMM_QRYERR	equ	(SC_COMM * 256) + 23
+
+;/*SC_MISC*/
+
+F_M_ERRMSG		equ	(SC_MISC * 256) + 0
+F_DRAWBOX		equ	(SC_MISC * 256) + 1
+F_SHOWNAME		equ	(SC_MISC * 256) + 2
+F_MESSAGE		equ	(SC_MISC * 256) + 3
+F_MSG_OFF		equ	(SC_MISC * 256) + 4
+F_M_COM_TIMER_ADDR	equ	(SC_MISC * 256) + 5
+F_M_COM_TIMER_COUNT_ADDR equ	(SC_MISC * 256) + 6
+F_M_SYS_RSRC_ADDR	equ	(SC_MISC * 256) + 7
+F_M_BIOS_OUTSTR		equ	(SC_MISC * 256) + 8
+F_M_MESSAGE3		equ	(SC_MISC * 256) + 9
+F_M_DISABLE_MACROS	equ	(SC_MISC * 256) + 10
+F_M_ENABLE_MACROS	equ	(SC_MISC * 256) + 11
+F_M_DATE_TIME_SEPS	equ	(SC_MISC * 256) + 12
+F_M_FORM_FT		equ	(SC_MISC * 256) + 13
+F_M_RAM_IV_INFO		equ	(SC_MISC * 256) + 14
+
+;/*SC_VIDVIR*/
+F_M_DIRTY_SYNC		equ	(SC_VIDVIR * 256) + 5
+
+
+
+;/*SC_VIDPHY*/
+
+
+
+;/*SC_RSRC*/
+
+F_MAP_RESOURCE_FILE	equ	(SC_RSRC * 256) + 0
+F_GET_RESOURCE_PTR	equ	(SC_RSRC * 256) + 1
+
+;/*SC_HELP*/
+
+F_M_HELP_INIT		equ	(SC_HELP * 256) + 0
+F_M_HELP_DISPLAY	equ	(SC_HELP * 256) + 1
+F_M_HELP_KEY		equ	(SC_HELP * 256) + 2
+F_M_HELP_TERM		equ	(SC_HELP * 256) + 3
+
+;/*SC_COL*/
+
+F_M_ColInit		equ	(SC_COL * 256) + 0
+F_M_ColCpStr		equ	(SC_COL * 256) + 1
+F_M_ColLicsStr		equ	(SC_COL * 256) + 2
+F_M_ColLicsChar		equ	(SC_COL * 256) + 3
+F_M_ColToLower		equ	(SC_COL * 256) + 4
+F_M_ColCpSearch		equ	(SC_COL * 256) + 5
+F_M_ColToUpper		equ	(SC_COL * 256) + 6
+
+; SC_GRDISP
+
+F_GrDispInit		equ  	(SC_GRDISP * 256) + 0
+F_GrDispClear		equ  	(SC_GRDISP * 256) + 1
+F_GrDispDot		equ  	(SC_GRDISP * 256) + 2
+F_GrDispDraw		equ  	(SC_GRDISP * 256) + 3
+F_GrDispFill		equ  	(SC_GRDISP * 256) + 4
+F_GrDispRead		equ  	(SC_GRDISP * 256) + 5
+F_GrDispString		equ  	(SC_GRDISP * 256) + 6
+F_GrDispPan		equ  	(SC_GRDISP * 256) + 7
+F_GrDispZoom		equ  	(SC_GRDISP * 256) + 8
+F_GrDispSave		equ  	(SC_GRDISP * 256) + 9
+F_GrDispRestore		equ 	(SC_GRDISP * 256) + 10
+F_GrDispCorner		equ 	(SC_GRDISP * 256) + 11
+
+
+; SC_KEY
+
+
+F_CP_TO_LICS		equ	(SC_KEY * 256) + 4
+
+
+SVCALL	macro serclass_subfunc
+	mov	di,serclass_subfunc
+	int	SERVICESVECTOR
+	endm
+
+DUMMY_ARG_SIZE		equ	4
+SMCALL	macro serclass_subfunc
+	mov	di,serclass_subfunc
+	sub	sp,DUMMY_ARG_SIZE
+	int	SERVICESVECTOR
+	add	sp,DUMMY_ARG_SIZE
+	endm

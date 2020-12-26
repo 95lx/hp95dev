@@ -1,0 +1,86 @@
+This archive contains a number of files/documents related to programming for
+the HP 95LX.  Most of these files are copyrighted by either Hewlett-Packard
+Company or Lotus Development Corporation, but the companies have given permiss-
+ion for these files to be distributed free of charge, although they maintain
+all copyrights and other rights.
+
+This package of files and documents is being distributed completely UNSUPPORTED
+by Hewlett-Packard and Lotus.  Neither company nor any of their employees
+support any of the included information.  This information is provided for your
+use, as is.  Hewlett-Packard and Lotus only provide software development
+support for ISV's (Independent Software Vendors) who have made application to,
+and been accepted into, the ISV developer's program.  Requirements for
+acceptance into that program are stringent, and are aimed at products for
+commercial distribution.
+
+The included files are:
+
+	AREADME.1ST		this file
+
+	BOXES\BOXES.C		Boxes game.  Sample SysMgr program C souce
+	BOXES\BOXES.MAK
+	BOXES\BOXES.EXM
+	BOXES\BOXES.EXE
+	BOXES\BOXES.DOC
+
+	DOC\GRAPH.DOC		documents HP 95LX low level graphics routines
+	DOC\MISC.DOC		miscellaneous HP 95LX things documented
+	DOC\OVERVIEW.DOC	System Manager overview
+	DOC\SCANCODE.DOC	HP 95LX keyboard scancode tables
+	DOC\PBKFORM.TXT		phone book file format
+	DOC\ABKFORM.TXT		appointment book file format
+
+	HEADERS\BRIDGE.H	Assembly...
+	HEADERS\BRIDGE.MAC	    ...and C...
+	HEADERS\CBCODES.H		...Header/include files
+	HEADERS\CBCODES.MAC			"
+	HEADERS\COMIO.H				"
+	HEADERS\COMIO.MAC			"
+	HEADERS\EDIT.H				"
+	HEADERS\SMEDIT.MAC			"
+	HEADERS\EVENT.H				"
+	HEADERS\EVENT.MAC			"
+	HEADERS\FILEIO.H			"
+	HEADERS\FILEIO.MAC			"
+	HEADERS\FMENU.H				"
+	HEADERS\FMENU.MAC			"
+	HEADERS\INTERFAC.H			"
+	HEADERS\INTERFAC.MAC			"
+	HEADERS\M_ERROR.H			"
+	HEADERS\M_ERROR.MAC			"
+	HEADERS\MENU.H				"
+	HEADERS\MENU.MAC			"
+	HEADERS\SETTINGS.H			"
+	HEADERS\SETTINGS.MAC			"
+	HEADERS\SMTIME.H			"
+	HEADERS\SMTIME.MAC			"
+
+	TOOLS\E2M.EXE		.EXE to .EXM file converter
+	TOOLS\CRT0.ASM		startup source code to link with C programs
+	TOOLS\CRT0.OBJ		startup code to link with C programs
+	TOOLS\CSVC.OBJ		SysMgr "call" code to link with C programs
+	TOOLS\TSRGRAPH.COM	PC TSR that provides INT 5F compatible functions
+
+	SMHELLO\SMHELLO.C	SysMgr compliant Hello World example
+	SMHELLO\I.BAT
+	SMHELLO\U.BAT
+	SMHELLO\Y
+	SMHELLO\N
+	SMHELLO\MAKESMH.BAT
+	SMHELLO\SMHELLO.MAK
+	SMHELLO\SMHELLO.EXM
+
+	SMDEMO\MAKEDEMO.BAT
+	SMDEMO\SMDEMO.MAK
+	SMDEMO\SMDEMO.C		SysMgr demo program
+	SMDEMO\SMDEMO.MAP
+	SMDEMO\SMDEMO.EXE
+	SMDEMO\TMPSMDEM.MAP
+	SMDEMO\TMPSMDEM.EXE
+	SMDEMO\I.BAT
+	SMDEMO\SMDEMO.EXM
+	SMDEMO\SMDEMO.OBJ
+	SMDEMO\U.BAT
+	SMDEMO\Y
+	SMDEMO\N
+	SMDEMO\TMPSMDEM.OBJ

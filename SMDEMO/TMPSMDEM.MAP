@@ -1,0 +1,95 @@
+
+ Start  Stop   Length Name                   Class
+ 00000H 00762H 00763H _TEXT                  CODE
+ 00764H 008EDH 0018AH _DATA                  DATA
+ 008EEH 008EEH 00000H CONST                  CONST
+ 008EEH 008FCH 0000FH _BSS                   BSS
+ 00900H 00FE9H 006EAH c_common               BSS
+ 00FF0H 017EFH 00800H STACK                  STACK
+
+ Origin   Group
+ 0076:0   DGROUP
+
+  Address         Publics by Name
+
+ 0000:06D6       patch_service_interrupt
+ 0000:00D0       _app_awake
+ 0000:01D0       _app_break
+ 0000:00D4       _app_display
+ 0000:007C       _app_init
+ 0000:01D2       _app_key
+ 0000:01CE       _app_sleep
+ 0000:00CE       _app_term
+ 0000:06D7       _break_point
+ 0000:06CC       _c_service
+ 0000:06CC       _c_service_far_ptr
+ 0000:06CC       _c_service_near_ptr
+ 0000:04AE       _disable_light_sleep
+ 0076:018E       _edata
+ 0076:07FE       _edit_data
+ 0000:04BA       _enable_light_sleep
+ 0076:0890       _end
+ 0000:03DC       _ESCmsg
+ 0076:039E       _event
+ 0076:03B0       _fmbuffer
+ 0076:0014       _fmenu
+ 0000:0444       _InterruptibleLoop
+ 0000:06FA       _ltoa
+ 0000:0010       _main
+ 0076:0230       _menu
+ 0000:05A2       _NextAvailable
+ 0076:01B0       _Perm
+ 0076:03AC       _PermCount
+ 0076:07FC       _PermSpots
+ 0000:0638       _Permutation
+ 0000:04C6       _ResetPermutations
+ 0000:0502       _ShowPerm
+ 0076:0012       _state
+ 0000:06DE       _strlen
+ 0076:01A0       _strptr
+ 0000:9876  Abs  __acrtused
+ 0000:0704       __cltoasub
+ 0000:0710       __cxtoa
+
+  Address         Publics by Value
+
+ 0000:0010       _main
+ 0000:007C       _app_init
+ 0000:00CE       _app_term
+ 0000:00D0       _app_awake
+ 0000:00D4       _app_display
+ 0000:01CE       _app_sleep
+ 0000:01D0       _app_break
+ 0000:01D2       _app_key
+ 0000:03DC       _ESCmsg
+ 0000:0444       _InterruptibleLoop
+ 0000:04AE       _disable_light_sleep
+ 0000:04BA       _enable_light_sleep
+ 0000:04C6       _ResetPermutations
+ 0000:0502       _ShowPerm
+ 0000:05A2       _NextAvailable
+ 0000:0638       _Permutation
+ 0000:06CC       _c_service_far_ptr
+ 0000:06CC       _c_service_near_ptr
+ 0000:06CC       _c_service
+ 0000:06D6       patch_service_interrupt
+ 0000:06D7       _break_point
+ 0000:06DE       _strlen
+ 0000:06FA       _ltoa
+ 0000:0704       __cltoasub
+ 0000:0710       __cxtoa
+ 0076:0012       _state
+ 0076:0014       _fmenu
+ 0076:018E       _edata
+ 0076:01A0       _strptr
+ 0076:01B0       _Perm
+ 0076:0230       _menu
+ 0076:039E       _event
+ 0076:03AC       _PermCount
+ 0076:03B0       _fmbuffer
+ 0076:07FC       _PermSpots
+ 0076:07FE       _edit_data
+ 0076:0890       _end
+ 0000:9876  Abs  __acrtused
+
+Program entry point at 0000:06DA

@@ -1,0 +1,28 @@
+; Module cbcodes.mac  Version 1.1  Date 07/24/91  Time 16:17:23 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+;****************************************************************
+;cbcodes.mac
+;
+;Clipboard status codes; negative values used because the "get clipboard
+;data" routine needs to use positive values for partial completion status.
+;
+;****************************************************************
+
+CB_OK		equ	0		;/* All's well with the world */
+
+CB_LOCKED	equ	-1		;/* Clipboard access denied */
+CB_NOT_OPEN	equ	-2		;/* Clipboard not formally open */
+CB_ALLOC	equ	-3		;/* Heap allocation failure */
+CB_EXISTS	equ	-4		;/* Representation already exists */
+CB_REP_OPEN	equ	-5		;/* A Representation is open */
+CB_NO_REP	equ	-6		;/* No representation open */
+CB_NO_SUCH	equ	-7		;/* No such representation */
+CB_BOUNDS	equ	-8		;/* Transfer request out of bounds */
+

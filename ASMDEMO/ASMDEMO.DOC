@@ -1,0 +1,30 @@
+ASMDEMO is an extremely simple assembly language program that shows the basic
+shell structure of an assembly language System Manager compliant application
+for the HP 95LX.
+
+Basically, all it does is display one of three text screens, with the display
+in either ALPHA or GRAPHICS mode.  While looking at the display, the only
+differences you'll notice between ALPHA and GRAPHICS is that the blinking
+cursor only shows in ALHPA mode, and the screen updates (writes) are slower
+in GRAPHICS (more bytes to write, more overhead, etc).
+
+The code is pretty self-explanatory. :-)
+
+The only thing that I'd like to point out (in my limited time to do so), is
+the SysMgr calls to write to the alpha display use a coordinate system where
+column numbers range from 0 to 39 and row numbers range from -3 to 12.  The
+strange row numbering is supposedly because the application screens all have
+three rows of "header" info at the top of the display, so this puts the first
+row of the applications "data" screen at row 0. <shrug of shoulders>
+
+The included files are:
+
+	ASMDEMO.ASM	the source code
+	ASMDEMO.EXM	the SysMgr executable
+	ASMDEMO.MAP	the LINKER map file (used by E2M, and included for ref)
+	ASMDEMO		the MAKE file
+	ASMDEMO.DOC	this file
+
+Hope this can be of help to someone.
+
+Everett Kaser

@@ -1,0 +1,236 @@
+; Module bridge.mac  Version 1.1  Date 06/19/91  Time 17:39:56 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+BRIDGE_PB STRUC
+	bpb_funcode	dw	?	; what is 1-2-3 to do
+	bpb_retcode	dw	?	; return value from 1-2-3
+	bpb_rangename 	db 	16 dup(?) ; ascii range name
+	bpb_startcol	dw	?	; coords of range
+	bpb_startrow	dw	?
+	bpb_endcol	dw	?
+	bpb_endrow	dw	?
+	bpb_order	dw	?	; order in which data is placed in buffer
+	bpb_bufsize	dw	?	; size of buffer for cell data
+	bpb_buffer	dw	?	; near ptr to cell data buf. (same
+					; segment as the bridge_pb itself)
+	
+BRIDGE_PB ENDS
+
+; flags for bridge status
+BR_CLOSED	equ	0		; no bridge is active
+BR_OPEN		equ	1		; 123 is running through bridge
+BR_INIT		equ	2		; bridge has been requested, but
+					; 123 has not been made active	
+BRIDGE_HOST	equ	2
+
+
+
+; function codes for bridge services
+
+BRIDGE_TEST		equ	0
+
+; input 	
+;	funcode 	BRIDGE_TEST
+; output 
+;	retcode 	1 ok
+;			0  not ok (123 busy)
+;			-1 not ok (123 not loaded)
+
+
+
+BRIDGE_GETRANGE 	equ	1
+
+; input:
+;	funcode		BRIDGE_GETRANGE
+;	buffer		Prompt as Asciz
+;	range		range if editting old, or setting start cursor
+;	order		bits set for OLD/NEW, ANCH/UNANCH, HIDE/NOHIDE
+; output on error:
+;	retcode 	0 = User aborted procedure
+;			-1 = 123 not loaded (should have been found with test)
+; output on success:
+;	retcode 	1 = successful selection
+;	rangenmame 	ascii string if named range selected, or '\0'
+;	startcol, etc 	dimensions of the selected range.
+
+BRIDGE_GETRANGE_EDITOLD		equ 1
+BRIDGE_GETRANGE_STARTANCHORED	equ 2
+BRIDGE_GETRANGE_SHOWHIDDEN	equ 4
+
+	
+
+BRIDGE_GETRANGE_ADDR	equ	2
+
+; input:
+;	funcode 	BRIDGE_GETRANGE_ADDR
+;	rangename 	ascii string of named range
+;
+; output on failure:
+;	retcode 	0 (range name not found)
+;			-1 = 123 not loaded (should have been found with test)
+; 
+; output on success:
+;	retcode		1
+;	startcol, etc 	dimensions of the selected range.
+
+
+	
+BRIDGE_SETRANGE_ADDR	equ	3
+
+; input:
+;	funcode 	BRIDGE_SETRANGE_ADDR
+;	rangename 	ascii string of named range
+;	startcol, etc 	dimensions of the range
+;
+; output on failure:
+;	retcode 	0 (not enough room in 123 or bad name or range)
+;			-1 = 123 not loaded (should have been found with test)
+; 
+; output on success:
+;	retcode		1
+
+;---------------------------------------------------------------------------
+; equates for data parsing
+;
+;Type fields for cell record types in GET/SET data.
+BRIDGE_TYPE_INT		equ 'I'
+BRIDGE_TYPE_NUM		equ 'N'
+BRIDGE_TYPE_STRING	equ 'S'
+BRIDGE_TYPE_BLANK	equ 'B'
+BRIDGE_TYPE_FORMULA	equ 'F'
+
+BRIDGE_GETRANGE_DATA	equ	4
+
+; input:
+;	funcode 	BRIDGE_GETRANGE_DATA
+;	startcol, etc 	dimensions of the range
+;	order		row order = 0; column order = 1.
+;	bufsize		size of buffer provided for data
+;	buffer		pointer to the buffer (must be in client DS)
+;
+; output:
+;	retcode 	number of cells returned in buffer
+;			transfer truncates when buffer full.
+;			0 indicates error.
+;			-1 = 123 not loaded (should have been found with test)
+
+
+
+BRIDGE_SETRANGE_DATA	equ	5
+
+; input:
+;	funcode 	BRIDGE_SETRANGE_DATA
+;	startcol, etc 	dimensions of the range
+;	order		row order = 0; column order = 1.
+;	bufsize		size of buffer provided for data
+;	buffer		pointer to the buffer (must be in client DS) with 
+;			data to b parsed.
+;
+; output:
+;	retcode 	number of cells imported. Any number less than
+;			the full range indicates error, probably inadequate
+;			memory.
+;			-1 = 123 not loaded (should have been found with test)
+
+
+BRIDGE_RECALC	equ	6
+
+; input:
+;	funcode 	BRIDGE_RECALC
+; output:
+;	retcode 	1 if success
+;			0 if failed
+;			-1 = 123 not loaded (should have been found with test)
+
+
+
+BRIDGE_GET_CURSOR	equ 7
+
+; Get the coordinates of the cell ptr
+; input:
+;	funcode = BRIDGE_GET_CURSOR
+; output:
+;	startcol = col
+;	startrow = row
+;
+
+BRIDGE_SET_CURSOR	equ 8
+
+; Set the coordinates of the cell ptr
+; input:
+;	funcode	= BRIDGE_SET_CURSOR
+;	startcol = col
+;	startrow = row
+; output:
+;	retcode = 1 if success
+;		  -1 if failed (bridge not ready, or cell was hidden)
+;		
+
+BRIDGE_REDISPLAY	equ 9
+
+;Redisplay the sheet.  (Does not do panel or status)
+;
+; input:
+;	funcode = BRIDGE_REDISPLAY
+; output:
+;	none
+
+
+BRIDGE_CELLTYPE	equ 10
+
+; Get the type of the given cell.
+; input:
+;	funcode	= BRIDGE_CELLTYPE
+;	startcol = col
+;	startrow = row
+; output:
+;	retcode = cell type if success (B,I,N,S,F)
+;		  ERR_BRIDGENOTREADY -- if bridge not ready
+;		  ERR_BADCELL -- if cell offsheet
+;		
+
+BRIDGE_CALCTYPE	equ 11
+
+; Get the current recalculation setting
+; input:
+;	funcode	= BRIDGE_CALCTYPE
+; output:
+;	retcode = calc type if success (0=manual, (-1) automatic)
+;		  ERR_BRIDGENOTREADY -- if bridge not ready
+;		
+
+
+
+; Trappable events in MorelTrapFunc
+TRAPFUNC_NONE		equ 0
+TRAPFUNC_BRIDGE		equ 1
+TRAPFUNC_CBCOPY		equ 2
+TRAPFUNC_CBPASTE	equ 3
+TRAPFUNC_HELPREDRAW	equ 4
+TRAPFUNC_GRAPHREDRAW	equ 5
+
+
+; Error from BRIDGE services
+
+ERR_USERABORT		equ 0
+ERR_NONE		equ 1
+ERR_BADFUNC		equ 0
+ERR_BRIDGENOTREADY	equ 0
+ERR_UNKNOWNNAME		equ 0
+ERR_SHRINK		equ 0
+ERR_HIDDEN		equ 0
+ERR_BADCELL		equ 0
+
+
+;  Errors from SETRANGE_DATA
+
+
+ERR_BRIDGE_PROTECTED	equ -2
+ERR_BRIDGE_MEMORY	equ -3
+ERR_BRIDGE_WSFULL	equ -4

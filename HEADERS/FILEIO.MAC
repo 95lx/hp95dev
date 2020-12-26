@@ -1,0 +1,73 @@
+; Module fileio.mac  Version 1.1  Date 06/19/91  Time 17:40:24 
+;
+; ****************************************************************
+; *
+; *	Copyright(c) 1990  Lotus Development Corporation
+; *	All Rights Reserved
+; *
+; ****************************************************************/
+
+FBUFSIZ			equ	512		;file I/O buffer size
+
+;
+;File structure for buffered I/O.
+;
+FILE STRUC
+	f_handle	dw 1 dup (?)		;DOS file handle
+	f_flag		dw 1 dup (?)		;flag word -- see below
+	f_pseek		dd 1 dup (?)		;physical seek address
+	f_lseek		dd 1 dup (?)		;logical seek address
+	f_vseek		dd 1 dup (?)		;virtual seek address
+	f_len		dw 1 dup (?)		;length of valid portion of buffer
+	f_buf		db FBUFSIZ dup (?)	;I/O buffer
+FILE ENDS
+
+;
+;Size of file structure for unbuffered I/O.
+;
+UNBUF_FILE		equ ((type FILE) - FBUFSIZ)
+
+;
+;File I/O flags.
+;
+VALID			equ	1		;buffer contents are valid
+DIRTY			equ	2		;buffer must be written
+NOBUF			equ	4		;force unbuffered I/O
+DEVICE			equ	8		;file is a device
+
+;
+;Maximum file name length.
+;
+MAXPATH			equ	63
+MAXNAM			equ	(3+MAXPATH+1+8+1+3+1)	;d:\path\name.ext<nul
+
+;
+;Seek modes.
+;
+SEEK_ABS		equ	0		;relative to beginning
+SEEK_REL		equ	1		;relatvie to current position
+SEEK_END		equ	2		;relative to end-of-file
+
+;
+;Pattern-match control block.
+;
+MATCH STRUC
+	m_reserved	db	21 dup (?)	;data transfer area
+	m_attr		db	1 dup (?)	;file attribute
+	m_time		dw	1 dup (?)	;time modified
+	m_date		dw	1 dup (?)	;date modified
+	m_size		dd	1 dup (?)	;file length
+	m_name		db	13 dup (?)	;file name
+	m_path		db	MAXNAM dup (?)	;full path name
+	m_ofs		db	1 dup (?)	;offset of last portion of path name
+	m_fn		db	1 dup (?)	;DOS call number to use
+MATCH ENDS
+
+
+;
+;Codes returned by m_ident.
+;
+iNONE			equ	0
+iFILE			equ	1
+iDIR			equ	2
+iDEV			equ	3
